@@ -1,27 +1,31 @@
 services:
-  estus_flask:
-    container_name: estus_flask
+  flask_mqtt:
+    container_name: flask_mqtt
     image: flask:1.0.0
+    network_mode: host
     build:
       context: ./BE
       dockerfile: flask.dockerfile
+    expose:
+      - 1883
     ports:
       - 4000:4000
+      - 1883:1883
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
-    depends_on:
-      - db
-  db:
-    container_name: db
-    image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB:
-    ports:
-      - 5432:5432
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+#     depends_on:
+#       - db
+#   db:
+#     container_name: db
+#     image: postgres:13
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#       POSTGRES_DB:
+#     ports:
+#       - 5432:5432
+#     volumes:
+#       - pgdata:/var/lib/postgresql/data
 
-volumes:
-  pgdata: {}
+# volumes:
+#   pgdata: {}
