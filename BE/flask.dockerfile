@@ -12,4 +12,4 @@ EXPOSE 4000
 EXPOSE 1883
 
 # CMD [ "flask", "run", "--host=0.0.0.0", "--port=4000"]
-CMD ["python", "-u", "app.py"]
+CMD ["python3", "-u", "app.py"]

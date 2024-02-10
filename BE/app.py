@@ -2,7 +2,11 @@ from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_mqtt import Mqtt
+from flask_socketio import SocketIO, emit
 from os import environ
+from engineio.async_drivers import gevent, eventlet
+
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 app = Flask(__name__)
 CORS(app) # Enable CORS for all routes
@@ -73,7 +77,16 @@ class User(db.Model):
 
 db.create_all()
 
-import user_routes # , log_routes, request_routes
+# import user_routes # , log_routes, request_routes
+
+# app.run(host='0.0.0.0', port=4000, debug=False)
+socketio = SocketIO(app, 
+                    host='0.0.0.0', 
+                    debug=True, 
+                    port=4000,
+                    cors_allowed_origins='*', 
+                    async_mode='eventlet',
+                    use_reloader=True)
 
 if __name__ == '__main__':
-   app.run(host='0.0.0.0', port=4000)
+    socketio.run(app)
