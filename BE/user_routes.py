@@ -1,11 +1,14 @@
-from app import app
-from app import db, User # , Project, Task
+#region Imports
+from app import app, socketio
+from app import db, User, Log, Request
 
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 
 from os import environ
+#endregion
 
 @app.route('/api/flask/users', methods=['POST']) # Create a new User
 def create_user():
@@ -65,3 +68,13 @@ def delete_user(id):
         return make_response(jsonify({'message' : 'User not found!'}), 404)
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new User : ', 'error' : str(e)}), 500)
+    
+@socketio.on('get_users') # Get all Users
+def get_users():
+    try:
+        users = User.query.all() # Get all Users from table
+        users_data = [{ 'id' : user.id, 'name' : user.name } for user in users]
+        emit('my response', users, namespace='/users')
+    except Exception as e:
+        print('ERROR')
+        # return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)
