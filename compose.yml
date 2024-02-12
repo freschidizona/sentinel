@@ -22,6 +22,7 @@ services:
       context: ./BE
       dockerfile: flask.dockerfile
     expose:
+      - 4000
       - 1883
     ports:
       - 4000:4000

@@ -69,12 +69,16 @@ def delete_user(id):
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new User : ', 'error' : str(e)}), 500)
     
-@socketio.on('get_users') # Get all Users
-def get_users():
-    try:
-        users = User.query.all() # Get all Users from table
-        users_data = [{ 'id' : user.id, 'name' : user.name } for user in users]
-        emit('my response', users, namespace='/users')
-    except Exception as e:
-        print('ERROR')
-        # return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)
+@socketio.on('my event')
+def log_message(message):
+    emit('my response', {'data': 'got it!'})
+
+# @socketio.on('get_users') # Get all Users
+# def get_users():
+#     try:
+#         users = User.query.all() # Get all Users from table
+#         users_data = [{ 'id' : user.id, 'name' : user.name } for user in users]
+#         emit('my response', users, namespace='/users')
+#     except Exception as e:
+#         print('ERROR')
+#         # return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)

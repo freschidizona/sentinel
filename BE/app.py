@@ -50,7 +50,7 @@ def handle_mqtt_message(client, userdata, message):
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(40), unique=True, nullable=False)
+    name = db.Column(db.String(80), unique=True, nullable=False)
 
     def json(self):
         return { 'id' : self.id, 'name' : self.name }
@@ -85,23 +85,27 @@ socketio = SocketIO(app,
                     debug=True, 
                     port=4000,
                     cors_allowed_origins='*', 
-                    async_mode='eventlet',
+                    async_mode='gevent',
                     use_reloader=True)
 
-#region Routes
-# import user_routes # , log_routes, request_routes
-@socketio.on('get_users') # Get all Users
-def get_users(json):
-    print('received message: ' + str(json))
-    # try:
-    #     users = User.query.all() # Get all Users from table
-    #     users_data = [{ 'id' : user.id, 'name' : user.name } for user in users]
-    #     emit('my response', users, namespace='/users')
-    # except Exception as e:
-    #     print('ERROR')
-        # return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)
-#endregion
+@socketio.on('connect')
+def test_connect(auth):
+    emit('my response', {'data': 'Connected'})
+
+@socketio.on('my event')
+def handle_my_custom_event(json):
+    print('received json: ' + str(json))
+
+@app.route('/api/flask/users', methods=['GET']) # Get all Users
+def get_users():
+    try:
+        users = User.query.all() # Get all Users from table
+        users_data = [{ 'id' : user.id, 'name' : user.name } for user in users]
+        return jsonify(users_data), 200
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)
 
 if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=4000)
     socketio.run(app)
 
