@@ -48,6 +48,55 @@ export class CharacterControls {
         this.toggleRun = !this.toggleRun
     }
 
+    public getPosition() {
+        return this.model.position
+    }
+
+    public moveTo(delta: number, keysPressed: any, X: number, Z: number = 0) {
+
+        const play = 'Run'
+
+        if (this.currentAction != play) {
+            const toPlay = this.animationsMap.get(play)
+            const current = this.animationsMap.get(this.currentAction)
+
+            current.fadeOut(this.fadeDuration)
+            toPlay.reset().fadeIn(this.fadeDuration).play();
+
+            this.currentAction = play
+        }
+
+        this.mixer.update(delta)
+
+        if (this.currentAction == 'Run' || this.currentAction == 'Walk') {
+            // calculate towards camera direction
+            var angleYCameraDirection = Math.atan2(
+                    (this.camera.position.x - this.model.position.x), 
+                    (this.camera.position.z - this.model.position.z))
+            // diagonal movement angle offset
+            var directionOffset = this.directionOffset(keysPressed)
+
+            // rotate model
+            this.rotateQuarternion.setFromAxisAngle(this.rotateAngle, angleYCameraDirection + directionOffset)
+            this.model.quaternion.rotateTowards(this.rotateQuarternion, 0.2)
+
+            // calculate direction
+            this.camera.getWorldDirection(this.walkDirection)
+            this.walkDirection.y = 0
+            this.walkDirection.normalize()
+            this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset)
+
+            // run/walk velocity
+            const velocity = this.currentAction == 'Run' ? this.runVelocity : this.walkVelocity
+
+            if (Math.abs(this.model.position.x + X)  < 15 &&
+                Math.abs(this.model.position.z + Z) < 2.5) {
+                this.model.position.x = X
+                this.model.position.z = Z
+            }
+        }
+    }
+
     public update(delta: number, keysPressed: any) {
         const directionPressed = DIRECTIONS.some(key => keysPressed[key] == true)
 
@@ -104,8 +153,8 @@ export class CharacterControls {
                 this.updateCameraTarget(moveX, moveZ)
             }
             
-            console.log(this.model.position.x)
-            console.log(this.model.position.z)
+            // console.log(this.model.position.x)
+            // console.log(this.model.position.z)
             
                 
             // else this.updateCameraTarget(0, 0)

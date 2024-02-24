@@ -3,16 +3,16 @@ import { CharacterControls } from './characterControls';
 import * as THREE from 'three'
 import { CameraHelper } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';  
 
 // SCENE
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#ffffff');
 
 // CAMERA
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.y = 10;
-camera.position.z = 5;
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.y = 120;
+camera.position.z = 65;
 camera.position.x = 0;
 
 // RENDERER
@@ -41,22 +41,26 @@ generateFloor()
 
 // MODEL WITH ANIMATIONS
 var characterControls: CharacterControls
-new GLTFLoader().load('models/Soldier.glb', function (gltf) {
-    const model = gltf.scene;
-    model.traverse(function (object: any) {
-        if (object.isMesh) object.castShadow = true;
+function generateOperator() {
+    new GLTFLoader().load('models/Soldier.glb', function (gltf) {
+        const model = gltf.scene;
+        model.traverse(function (object: any) {
+            if (object.isMesh) object.castShadow = true;
+        });
+        scene.add(model);
+    
+        const gltfAnimations: THREE.AnimationClip[] = gltf.animations;
+        const mixer = new THREE.AnimationMixer(model);
+        const animationsMap: Map<string, THREE.AnimationAction> = new Map()
+        gltfAnimations.filter(a => a.name != 'TPose').forEach((a: THREE.AnimationClip) => {
+            animationsMap.set(a.name, mixer.clipAction(a))
+        })
+    
+        characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera,  'Idle')
     });
-    scene.add(model);
+}
 
-    const gltfAnimations: THREE.AnimationClip[] = gltf.animations;
-    const mixer = new THREE.AnimationMixer(model);
-    const animationsMap: Map<string, THREE.AnimationAction> = new Map()
-    gltfAnimations.filter(a => a.name != 'TPose').forEach((a: THREE.AnimationClip) => {
-        animationsMap.set(a.name, mixer.clipAction(a))
-    })
-
-    characterControls = new CharacterControls(model, mixer, animationsMap, orbitControls, camera,  'Idle')
-});
+generateOperator();
 
 // CONTROL KEYS
 const keysPressed = {  }
@@ -77,7 +81,7 @@ document.addEventListener('keyup', (event) => {
 const clock = new THREE.Clock();
 // ANIMATE
 function animate() {
-    let mixerUpdateDelta = clock.getDelta();
+    let mixerUpdateDelta = clock.getDelta(); 
     if (characterControls) {
         characterControls.update(mixerUpdateDelta, keysPressed);
     }
@@ -145,3 +149,15 @@ function light() {
     dirLight.shadow.mapSize.height = 4096;
     scene.add(dirLight);
 }
+
+function moveTo() {
+    let randomX = Math.random() * 30 - 15;
+    const keysPressed = randomX >= 0 ? 'd' : 'a';
+    console.log(randomX);
+    characterControls?.moveTo(clock.getDelta(), keysPressed, randomX);
+}
+
+setInterval(() => {
+    moveTo();
+}, 2000);
+
