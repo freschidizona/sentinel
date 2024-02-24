@@ -26,7 +26,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(
-                    `${apiUrl}/api/${backendName}/get_latest_logs`
+                    `${apiUrl}/api/${backendName}/latest_logs`
                 );
                 console.log(response);
                 setLogs(response.data.reverse());
