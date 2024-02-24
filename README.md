@@ -5,7 +5,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/freschidizona/sentinel">
-    <img src="/FE/src/static/img/logo.png" alt="Logo" width="250" height="250">
+    <img src="/FE/public/logo.png" alt="Logo" width="250" height="250">
   </a>
 
 <h2 align="center">Sentinel</h2>
