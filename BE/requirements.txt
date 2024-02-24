@@ -3,6 +3,3 @@ psycopg2-binary
 Flask-SQLAlchemy
 Flask-CORS
 flask_mqtt
-flask_socketio
-gevent
-eventlet

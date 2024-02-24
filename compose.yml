@@ -8,9 +8,9 @@ services:
       context: ./FE
       dockerfile: fe.dockerfile
     expose:
-      - 8080
+      - 3000
     ports:
-      - 8080:8080
+      - 3000:3000
     depends_on:
       - flask_mqtt
   flask_mqtt:

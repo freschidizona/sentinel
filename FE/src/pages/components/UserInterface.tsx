@@ -4,15 +4,12 @@ import axios from "axios";
 import Caption from "./Caption";
 import OperatorCard from "./OperatorCard";
 
-import Link from "next/link";
-import { useRouter } from "next/router";
 
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    job: string;
+interface Log {
+    id_user: number;
+    col: string;
+    strength: string;
+    BPM: string;
 }
 
 interface UserInterfaceProps {
@@ -20,34 +17,28 @@ interface UserInterfaceProps {
 }
 
 const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
-    const router = useRouter();
-    // API Url
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    // Handle states of Users
-    const [users, setUsers] = useState<User[]>([]);
-    const [newUser, setNewUser] = useState({ name: "", email: "", job: "" });
-    const [updateUser, setUpdateUser] = useState({
-        id: "",
-        name: "",
-        email: "",
-        job: "",
-    });
+    
+    const [logs, setLogs] = useState<Log[]>([]);
 
-    // Fetch Users
+    // Fetch Logs
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(
-                    `${apiUrl}/api/${backendName}/users`
+                    `${apiUrl}/api/${backendName}/get_latest_logs`
                 );
                 console.log(response);
-                setUsers(response.data.reverse());
+                setLogs(response.data.reverse());
             } catch (error) {
                 console.error("Error Fetching Data: ", error);
             }
         };
 
-        fetchData();
+        setInterval(() => {
+            fetchData();
+        }, 5000);
+
     }, [backendName, apiUrl]);
 
     // Create User
@@ -62,41 +53,6 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
             setNewUser({ name: "", email: "", job: "" });
         } catch (error) {
             console.error("Error Creating User: ", error);
-        }
-    };
-
-    // Update User
-    const handleUpdateUser = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        try {
-            const response = await axios.put(
-                `${apiUrl}/api/${backendName}/users/${updateUser.id}`,
-                { name: updateUser.name, email: updateUser.email }
-            );
-            setUpdateUser({ id: "", name: "", email: "", job: "" });
-            setUsers(
-                users.map((user) => {
-                    if (user.id === parseInt(updateUser.id))
-                        return {
-                            ...user,
-                            name: updateUser.name,
-                            email: updateUser.email,
-                        };
-                    return user;
-                })
-            );
-        } catch (error) {
-            console.error("Error Updating User: ", error);
-        }
-    };
-
-    // Delete User
-    const deleteUser = async (userId: number) => {
-        try {
-            await axios.delete(`${apiUrl}/api/${backendName}/users/${userId}`);
-            setUsers(users.filter((user) => user.id !== userId));
-        } catch (error) {
-            console.error("Error Deleting User: ", error);
         }
     };
 
@@ -146,16 +102,16 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                         </div>
                     </div>
                     {/* Display Users */}
-                    <div className="space-y-2">
-                        {users.map((user) => (
+                    {/* <div className="space-y-2">
+                        {logs.map((log) => (
                             <div
-                                key={user.id}
+                                key={log.id}
                                 className={`flex items-center justify-between w-64 rounded-2xl`}
                             >
-                                <OperatorCard card={user} />
+                                <OperatorCard card={log} />
                             </div>
                         ))}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
