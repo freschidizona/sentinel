@@ -1,6 +1,6 @@
 #region Imports
 from flask import Flask, request, jsonify, make_response
-from flask_sqlalchemy import SQLAlchemy, func
+from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_mqtt import Mqtt
 from os import environ
@@ -96,32 +96,41 @@ def create_user():
         }), 201 # HTTP Code
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new User : ', 'error' : str(e)}), 500)
-    
+
+@app.route('/api/flask/logs', methods=['GET']) # Get all Users
+def get_logs():
+    try:
+        logs = Log.query.all()
+        logs_data = [{ 'id' : log.id, 'id_user' : log.id_user, 'col' : log.col, 'strength' : log.strength, 'bpm' : log.bpm } for log in logs]
+
+        return jsonify(logs_data), 200
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500) 
 @app.route('/api/flask/latest_logs', methods=['GET']) # Get all Users
 def get_latest_logs():
     try:
-        # select l.id_user, m.max, l.col, l.strength, l.bpm from (select id_user, MAX(created_on) as max from log group by id_user) m join log l on m.max = l.created_on;
-        logs = Log.query.all() # Get all Logs from table
-        logs_data = [{ 'id' : log.id, 'id_user' : log.id_user, 'col' : log.col, 'strength' : log.strength, 'bpm' : log.bpm } for log in logs]
+        logs = Log.query.all()
+        logs_data = [{ 'id' : log.id, 'id_user' : log.id_user, 'col' : log.col, 'strength' : log.strength, 'bpm' : log.bpm, 'created_on': log.created_on } for log in logs]
 
-        # subquery = Log.query(Log.id_user, func.max(Log.created_on).label('max')).group_by(Log.id_user).subquery('m')
-        # result = Log.query(Log.id_user, subquery.c.max, Log.col, Log.strength, Log.bpm).join(subquery, subquery.c.max == Log.created_on).all()
+        latest_logs_dict = {}
+        for log in logs_data:
+            id_user = log['id_user']
+            if id_user not in latest_logs_dict or log['created_on'] > latest_logs_dict[id_user]['created_on']:
+                latest_logs_dict[id_user] = log
+        latest_logs = list(latest_logs_dict.values())
 
-        # print(logs_data)
-        # print(type(logs_data))
-        # unique_logs = set(logs_data)
-        # values = set([i['score'] for i in content])
+        print(latest_logs)
 
-        return jsonify(logs_data), 200
+        return jsonify(latest_logs), 200
     except Exception as e:
         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500)
 #endregion
     
 #region Utils
 def create_log(log = None):
-    data = log if log else request.get_json(force=True) # Get data from request
-
-    new_log = Log(id_user = data['idOp'], col = data['col'], strength = data['strength'], bpm = data['BPM']) # Create new user using User model
+    data = log if log else request.get_json(force=True)
+    # !!!
+    new_log = Log(id_user = data['idOp'], col = (data['col'] / 10), strength = data['strength'], bpm = data['BPM']) # Create new user using User model
     db.session.add(new_log) # Add new user using SQLAlchemy
     db.session.commit() # Commit this session
 #endregion

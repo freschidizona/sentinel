@@ -3,14 +3,7 @@ import axios from "axios";
 
 import Caption from "./Caption";
 import OperatorCard from "./OperatorCard";
-
-
-interface Log {
-    id_user: number;
-    col: string;
-    strength: string;
-    BPM: string;
-}
+import { Log } from "../interfaces/LogInterface";
 
 interface UserInterfaceProps {
     backendName: string;
@@ -18,7 +11,7 @@ interface UserInterfaceProps {
 
 const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    
+
     const [logs, setLogs] = useState<Log[]>([]);
 
     // Fetch Logs
@@ -30,6 +23,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                 );
                 console.log(response);
                 setLogs(response.data.reverse());
+                console.log(logs);
             } catch (error) {
                 console.error("Error Fetching Data: ", error);
             }
@@ -42,19 +36,19 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
     }, [backendName, apiUrl]);
 
     // Create User
-    const createUser = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post(
-                `${apiUrl}/api/${backendName}/users`,
-                newUser
-            );
-            setUsers([response.data, ...users]);
-            setNewUser({ name: "", email: "", job: "" });
-        } catch (error) {
-            console.error("Error Creating User: ", error);
-        }
-    };
+    // const createUser = async (e: React.FormEvent<HTMLFormElement>) => {
+    //     e.preventDefault();
+    //     try {
+    //         const response = await axios.post(
+    //             `${apiUrl}/api/${backendName}/users`,
+    //             newUser
+    //         );
+    //         setUsers([response.data, ...users]);
+    //         setNewUser({ name: "", email: "", job: "" });
+    //     } catch (error) {
+    //         console.error("Error Creating User: ", error);
+    //     }
+    // };
 
     return (
         <div className="isolate my-8">
@@ -101,19 +95,20 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                             {/* #endregion */}
                         </div>
                     </div>
+                </div>
                     {/* Display Users */}
-                    {/* <div className="space-y-2">
-                        {logs.map((log) => (
-                            <div
-                                key={log.id}
-                                className={`flex items-center justify-between w-64 rounded-2xl`}
-                            >
-                                <OperatorCard card={log} />
-                            </div>
-                        ))}
-                    </div> */}
+                    <div className="space-y-2">
+                    {logs.map((log) => (
+                        <div
+                            // key={log.id_user}
+                            className={`flex items-center justify-between w-64 rounded-2xl`}
+                        >
+                            <OperatorCard log={log} />
+                        </div>
+                    ))}
                 </div>
             </div>
+            <Caption />
         </div>
     );
 };
