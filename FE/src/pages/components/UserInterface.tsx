@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 import Caption from "./Caption";
 import OperatorCard from "./OperatorCard";
@@ -13,15 +15,41 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
     const [logs, setLogs] = useState<Log[]>([]);
+    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
-    // Fetch Logs
+    const createitemRef = (id_user: number) => {
+        const itemRef = React.createRef();
+        const log = logs.find((log) => log.id_user === id_user);
+        if (log) 
+            log.ref = itemRef;
+        return itemRef;
+    };
+
+    const mapValue = (value: number, minValue: number, maxValue: number, minNewRange: number, maxNewRange: number) => {
+        const percentage = (value - minValue) / (maxValue - minValue);
+        const valueInNewRange = percentage * (maxNewRange - minNewRange) + minNewRange;
+        return valueInNewRange;
+    };
+
+    useEffect(() => {
+        const updateScreenWidth = () => {
+          setScreenWidth(window.innerWidth);
+        };
+    
+        window.addEventListener('resize', updateScreenWidth);
+    
+        return () => {
+          window.removeEventListener('resize', updateScreenWidth);
+        };
+    }, []);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(
                     `${apiUrl}/api/${backendName}/latest_logs`
                 );
-                console.log(response);
+                console.log(response.data);
                 setLogs(response.data.reverse());
                 console.log(logs);
             } catch (error) {
@@ -32,7 +60,6 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
         setInterval(() => {
             fetchData();
         }, 5000);
-
     }, [backendName, apiUrl]);
 
     // Create User
@@ -96,14 +123,20 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                         </div>
                     </div>
                 </div>
-                    {/* Display Users */}
-                    <div className="space-y-2">
+                {/* Display Users */}
+                <div className="space-y-2">
                     {logs.map((log) => (
                         <div
-                            // key={log.id_user}
-                            className={`flex items-center justify-between w-64 rounded-2xl`}
+                            key={log.id}
+                            className="col"
+                            ref={createitemRef(log.id_user)}
                         >
-                            <OperatorCard log={log} />
+                            <div
+                                key={log.id_user}
+                                className="flex items-center justify-between"
+                            >
+                                <OperatorCard log={log} />
+                            </div>
                         </div>
                     ))}
                 </div>
