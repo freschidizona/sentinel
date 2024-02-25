@@ -1,7 +1,7 @@
 export interface Log {
     id: number;
     id_user: number;
-    col: string;
+    col: number;
     strength: string;
     BPM: string;
     ref: any;

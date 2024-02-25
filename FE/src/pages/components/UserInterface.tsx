@@ -15,7 +15,6 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
     const [logs, setLogs] = useState<Log[]>([]);
-    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
     const createitemRef = (id_user: number) => {
         const itemRef = React.createRef();
@@ -24,24 +23,6 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
             log.ref = itemRef;
         return itemRef;
     };
-
-    const mapValue = (value: number, minValue: number, maxValue: number, minNewRange: number, maxNewRange: number) => {
-        const percentage = (value - minValue) / (maxValue - minValue);
-        const valueInNewRange = percentage * (maxNewRange - minNewRange) + minNewRange;
-        return valueInNewRange;
-    };
-
-    useEffect(() => {
-        const updateScreenWidth = () => {
-          setScreenWidth(window.innerWidth);
-        };
-    
-        window.addEventListener('resize', updateScreenWidth);
-    
-        return () => {
-          window.removeEventListener('resize', updateScreenWidth);
-        };
-    }, []);
 
     useEffect(() => {
         const fetchData = async () => {

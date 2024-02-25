@@ -1,15 +1,34 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Log } from "../interfaces/LogInterface";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-function OperatorCard({ log }) {
-    // const container = useRef();
+const OperatorCard: React.FC<{ log: Log }> = ({ log }) => {
+    const MAX_COLS = 12;
+    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
+    const mapValue = (value: number, minValue: number, maxValue: number, minNewRange: number, maxNewRange: number) => {
+        const percentage = (value - minValue) / (maxValue - minValue);
+        const valueInNewRange = percentage * (maxNewRange - minNewRange) + minNewRange;
+        return valueInNewRange;
+    };
+
+    useEffect(() => {
+        const updateScreenWidth = () => {
+          setScreenWidth(window.innerWidth);
+        };
+    
+        window.addEventListener('resize', updateScreenWidth);
+    
+        return () => {
+          window.removeEventListener('resize', updateScreenWidth);
+        };
+    }, []);
 
     useGSAP(
         () => {
             gsap.to(".box", {
-                x: log.col * 100,
+                x: mapValue(log.col, 0, MAX_COLS, 0, screenWidth),
             });
         },
         { scope: log.ref }
