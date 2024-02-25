@@ -104,6 +104,15 @@ def create_user():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new User : ', 'error' : str(e)}), 500)
 
+@app.route('/api/flask/users', methods=['GET']) # Get all Users
+def get_users():
+    try:
+        users = User.query.all() # Get all Users from table
+        users_data = [{ 'id' : user.id, 'name' : user.name } for user in users]
+        return jsonify(users_data), 200
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)
+
 @app.route('/api/flask/logs', methods=['GET']) # Get all Users
 def get_logs():
     try:

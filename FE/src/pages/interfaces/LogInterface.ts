@@ -3,6 +3,6 @@ export interface Log {
     id_user: number;
     col: number;
     strength: string;
-    BPM: string;
+    bpm: string;
     ref: any;
 }

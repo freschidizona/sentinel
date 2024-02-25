@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import Caption from "./Caption";
 import OperatorCard from "./OperatorCard";
 import { Log } from "../interfaces/LogInterface";
+import { User } from "../interfaces/UserInterface";
 
 interface UserInterfaceProps {
     backendName: string;
@@ -14,6 +15,7 @@ interface UserInterfaceProps {
 const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
+    const [users, setUsers] = useState<User[]>([]);
     const [logs, setLogs] = useState<Log[]>([]);
 
     const createitemRef = (id_user: number) => {
@@ -25,6 +27,20 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
     };
 
     useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get(
+                    `${apiUrl}/api/${backendName}/users`
+                );
+                console.log(response.data);
+                setUsers(response.data.reverse());
+            } catch (error) {
+                console.error("Error Fetching Data: ", error);
+            }
+        };
+
+        fetchUsers();
+
         const fetchData = async () => {
             try {
                 const response = await axios.get(
@@ -32,7 +48,6 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                 );
                 console.log(response.data);
                 setLogs(response.data.reverse());
-                console.log(logs);
             } catch (error) {
                 console.error("Error Fetching Data: ", error);
             }
@@ -105,7 +120,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                     </div>
                 </div>
                 {/* Display Users */}
-                <div className="space-y-2">
+                <div className="m-[-10rem]">
                     {logs.map((log) => (
                         <div
                             key={log.id}
@@ -116,7 +131,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                                 key={log.id_user}
                                 className="flex items-center justify-between"
                             >
-                                <OperatorCard log={log} />
+                                <OperatorCard log={log} username={users.find((user) => user.id === log.id_user)?.name} />
                             </div>
                         </div>
                     ))}
