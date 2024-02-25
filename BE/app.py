@@ -16,6 +16,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 #endregion
 
+#region Utils
+def create_log(data):
+    new_log = Log(id_user = data['idOp'], col = (data['col'] / 10), strength = data['strength'], bpm = data['BPM']) # Create new user using User model
+    db.session.add(new_log) # Add new user using SQLAlchemy
+    db.session.commit() # Commit this session
+#endregion
+
 #region MQTT
 app.config['MQTT_BROKER_URL'] = 'broker.emqx.io'
 app.config['MQTT_BROKER_PORT'] = 1883
@@ -119,20 +126,11 @@ def get_latest_logs():
                 latest_logs_dict[id_user] = log
         latest_logs = list(latest_logs_dict.values())
 
-        print(latest_logs)
+        # print(latest_logs)
 
         return jsonify(latest_logs), 200
     except Exception as e:
         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500)
-#endregion
-    
-#region Utils
-def create_log(log = None):
-    data = log if log else request.get_json(force=True)
-    # !!!
-    new_log = Log(id_user = data['idOp'], col = (data['col'] / 10), strength = data['strength'], bpm = data['BPM']) # Create new user using User model
-    db.session.add(new_log) # Add new user using SQLAlchemy
-    db.session.commit() # Commit this session
 #endregion
 
 
