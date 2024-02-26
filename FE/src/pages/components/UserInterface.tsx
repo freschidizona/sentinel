@@ -17,12 +17,13 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
 
     const [users, setUsers] = useState<User[]>([]);
     const [logs, setLogs] = useState<Log[]>([]);
+    const [previousLogs, setPreviousLogs] = useState<Log[]>([]);
+    let previousData: any;
 
     const createitemRef = (id_user: number) => {
         const itemRef = React.createRef();
         const log = logs.find((log) => log.id_user === id_user);
-        if (log) 
-            log.ref = itemRef;
+        if (log) log.ref = itemRef;
         return itemRef;
     };
 
@@ -43,10 +44,14 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
 
         const fetchData = async () => {
             try {
+                setPreviousLogs(previousData);
+                console.log("Previous Data: ", previousData);
                 const response = await axios.get(
                     `${apiUrl}/api/${backendName}/latest_logs`
                 );
-                console.log(response.data);
+                
+                previousData = response.data.reverse();
+                console.log("Most Recent Data: ", response.data);
                 setLogs(response.data.reverse());
             } catch (error) {
                 console.error("Error Fetching Data: ", error);
@@ -131,7 +136,20 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                                 key={log.id_user}
                                 className="flex items-center justify-between"
                             >
-                                <OperatorCard log={log} username={users.find((user) => user.id === log.id_user)?.name} />
+                                {/* Add prevCol in Interface then add from: prevCol to Col to animation */}
+                                <OperatorCard
+                                    log={log}
+                                    username={
+                                        users.find(
+                                            (user) => user.id === log.id_user
+                                        )?.name
+                                    }
+                                    prevCol={
+                                        previousLogs?.find(
+                                            (prev_log) => prev_log.id_user === log.id_user
+                                        )?.col ?? 0
+                                    }
+                                />
                             </div>
                         </div>
                     ))}

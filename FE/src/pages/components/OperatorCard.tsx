@@ -6,9 +6,10 @@ import { User } from "../interfaces/UserInterface";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-const OperatorCard: React.FC<{ log: Log; username: any }> = ({
+const OperatorCard: React.FC<{ log: Log; username: any; prevCol: any }> = ({
     log,
     username,
+    prevCol,
 }) => {
     const MAX_COLS = 12;
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -40,9 +41,11 @@ const OperatorCard: React.FC<{ log: Log; username: any }> = ({
 
     useGSAP(
         () => {
-            gsap.to(".box", {
-                x: mapValue(log.col, 0, MAX_COLS, 0, screenWidth),
-            });
+            gsap.fromTo(
+                ".box", 
+                {x: mapValue(prevCol, 0, MAX_COLS, 100, screenWidth - 100)}, 
+                {x: mapValue(log.col, 0, MAX_COLS, 100, screenWidth - 100)}
+            );
         },
         { scope: log.ref }
     );
@@ -55,9 +58,9 @@ const OperatorCard: React.FC<{ log: Log; username: any }> = ({
                         {username}
                     </h1>
                     <div className="flex justify-center justify-between items-center">
-                        <span class="relative flex h-3 w-3">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
                         </span>
                         {/* <svg
                             xmlns="http://www.w3.org/2000/svg"
