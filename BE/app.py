@@ -17,9 +17,18 @@ db = SQLAlchemy(app)
 #endregion
 
 #region Utils
+def _create_user(id):
+    try:
+        user = User.query.filter_by(id = id).first() # Get User by its ID
+        if not user:
+            new_user = User(id = id) # Create new user using User model
+            db.session.add(new_user) # Add new user using SQLAlchemy
+            db.session.commit()
+    except Exception as e:
+        return
 def create_log(data):
-    new_log = Log(id_user = data['idOp'], col = (data['col'] / 10), strength = data['strength'], bpm = data['BPM']) # Create new user using User model
-    db.session.add(new_log) # Add new user using SQLAlchemy
+    new_log = Log(id_user = data['user_addr'], col = data['col'], strength = data['rssi'], bpm = data['bpm'], temp = data['temp'], type = data['type']) # Create new user using User model
+    db.session.add(new_log) # Add new log using SQLAlchemy
     db.session.commit() # Commit this session
 #endregion
 
@@ -50,14 +59,16 @@ def handle_mqtt_message(client, userdata, message):
    payload=json.loads(data)
 
    print('Received message on topic:' + message.topic + ' with payload: ' + data)
+   
+   _create_user(str(payload.get('user_addr')))
    create_log(payload)
 #endregion
 
 #region Models
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
+    id = db.Column(db.String(80), primary_key=True)
+    name = db.Column(db.String(80), unique=False, nullable=True)
 
     def json(self):
         return { 'id' : self.id, 'name' : self.name }
@@ -65,25 +76,17 @@ class User(db.Model):
 class Log(db.Model):
     __tablename__ = 'log'
     id = db.Column(db.Integer, primary_key=True)
-    id_user = db.Column(db.Integer, db.ForeignKey('users.id'))
+    id_user = db.Column(db.String(80), db.ForeignKey('users.id'))
     col = db.Column(db.Integer, unique=False, nullable=False)
     strength = db.Column(db.Float, unique=False, nullable=False)
     bpm = db.Column(db.Integer, unique=False, nullable=False)
+    temp = db.Column(db.Integer, unique=False, nullable=False)
+    type = db.Column(db.Integer, unique=False, nullable=False)
     created_on = db.Column(db.DateTime, server_default=db.func.now())
     updated_on = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
 
     def json(self):
         return { 'id' : self.id, 'id_user' : self.id_user, 'col' : self.col, 'strength' : self.strength, 'created_on' : self.created_on, 'updated_on' : self.updated_on }
-
-class Request(db.Model):
-    __tablename__ = 'request'
-    id = db.Column(db.Integer, primary_key=True)
-    id_user = db.Column(db.Integer, db.ForeignKey('users.id'))
-    created_on = db.Column(db.DateTime, server_default=db.func.now())
-    updated_on = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
-
-    def json(self):
-        return { 'id' : self.id, 'name' : self.name, 'created_on' : self.created_on, 'updated_on' : self.updated_on }
 
 db.create_all()
 #endregion
