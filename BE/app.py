@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
 from flask_mqtt import Mqtt
 from os import environ
 import json
@@ -10,7 +11,8 @@ import json
 
 #region Flask, SQLAlchemy
 app = Flask(__name__)
-CORS(app) # Enable CORS for all routes
+CORS(app, supports_credentials=True)
+bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -65,6 +67,16 @@ def handle_mqtt_message(client, userdata, message):
 #endregion
 
 #region Models
+class Admin(db.Model):
+    __tablename__ = 'admins'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(42), unique=False, nullable=False)
+    surname = db.Column(db.String(42), unique=False, nullable=False)
+    email = db.Column(db.String(42), unique=True, nullable=False)
+    password = db.Column(db.String(96), unique=False, nullable=False)
+
+    def json(self):
+        return { 'id' : self.id, 'name' : self.name, 'surname' : self.surname, 'email' : self.email, 'password' : self.password }
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.String(80), primary_key=True)
@@ -92,6 +104,54 @@ db.create_all()
 #endregion
 
 #region Routes
+
+#region Admins
+@app.route('/api/flask/register', methods=['POST']) # Create a new User
+def register():
+    try:
+        data = request.get_json(force=True)
+        print(format(data))
+        admin = Admin(
+            name = data['name'], 
+            surname = data['surname'], 
+            email = data['email'], 
+            password = bcrypt.generate_password_hash(data['password']).decode("utf-8", "ignore"))
+        db.session.add(admin)
+        db.session.commit() # Commit this session
+
+        return jsonify({ # Return the new obj itself to handle ID
+            'id' : admin.id,
+            'name' : admin.name,
+            'surname' : admin.surname,
+            'email' : admin.email
+        }), 201 # HTTP Code
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error creating new Admin : ', 'error' : str(e)}), 500)
+
+@app.route('/api/flask/login', methods=['POST']) # Create a new User
+def login():
+    try:
+        data = request.get_json(force=True)
+        print(format(data))
+
+        admin = Admin.query.filter_by(email=data['email']).first()
+
+        if admin is None:
+            return jsonify({"error": "Unauthorized"}), 401
+        if not bcrypt.check_password_hash(admin.password, data['password']):
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        # session["user_id"] = user.id
+        return jsonify({
+            "id": admin.id,
+            "email": admin.email
+        })
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error while logging : ', 'error' : str(e)}), 500)
+#endregion
+
+
+
 @app.route('/api/flask/users', methods=['POST']) # Create a new User
 def create_user():
     try:
