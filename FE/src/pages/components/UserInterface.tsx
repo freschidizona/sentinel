@@ -40,7 +40,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
             }
         };
 
-        fetchUsers();
+        // fetchUsers();
 
         const fetchData = async () => {
             try {
@@ -49,7 +49,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                 const response = await axios.get(
                     `${apiUrl}/api/${backendName}/latest_logs`
                 );
-                
+
                 previousData = response.data.reverse();
                 console.log("Most Recent Data: ", response.data);
                 setLogs(response.data.reverse());
@@ -60,23 +60,9 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
 
         setInterval(() => {
             fetchData();
+            fetchUsers();
         }, 5000);
     }, [backendName, apiUrl]);
-
-    // Create User
-    // const createUser = async (e: React.FormEvent<HTMLFormElement>) => {
-    //     e.preventDefault();
-    //     try {
-    //         const response = await axios.post(
-    //             `${apiUrl}/api/${backendName}/users`,
-    //             newUser
-    //         );
-    //         setUsers([response.data, ...users]);
-    //         setNewUser({ name: "", email: "", job: "" });
-    //     } catch (error) {
-    //         console.error("Error Creating User: ", error);
-    //     }
-    // };
 
     return (
         <div className="isolate my-8">
@@ -100,27 +86,6 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                                 and a comprehensive administrative service based
                                 on AI.
                             </p>
-                            {/* #region Wath Demo */}
-                            {/* <div className="mt-8 flex gap-x-4 sm:justify-center">
-                                <a href="#" className="inline-block rounded-lg bg-red-600 px-4 py-1.5 text-base font-semibold leading-7 text-white shadow-sm ring-1 ring-red-600 hover:bg-red-700 hover:ring-red-700">
-                                    Watch Demo
-                                    <span className="text-red-200" aria-hidden="true">&rarr;</span>
-                                </a>
-                            </div> */}
-                            {/* #endregion */}
-                            {/* #region SVG BG */}
-                            {/* <div className="absolute inset-x-0 -z-10 transform-gpu overflow-hidden blur-2xl sm:top-[calc(100%-30rem)]">
-                                <svg className="relative left-[calc(50%+3rem)]  max-w-none -translate-x-1/2 sm:left-[calc(50%+36rem)] sm:h-[42.375rem]" viewBox="0 0 1155 678" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill="url(#ecb5b0c9-546c-4772-8c71-4d3f06d544bc)" fill-opacity=".3" d="M317.219 518.975L203.852 678 0 438.341l317.219 80.634 204.172-286.402c1.307 132.337 45.083 346.658 209.733 145.248C936.936 126.058 882.053-94.234 1031.02 41.331c119.18 108.451 130.68 295.337 121.53 375.223L855 299l21.173 362.054-558.954-142.079z" />
-                                    <defs>
-                                        <linearGradient id="ecb5b0c9-546c-4772-8c71-4d3f06d544bc" x1="1155.49" x2="-78.208" y1=".177" y2="474.645" gradientUnits="userSpaceOnUse">
-                                            <stop stop-color="#9089FC"></stop>
-                                            <stop offset="1" stop-color="#FF80B5"></stop>
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div> */}
-                            {/* #endregion */}
                         </div>
                     </div>
                 </div>
@@ -142,15 +107,22 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                                     username={
                                         users.find(
                                             (user) => user.id === log.id_user
-                                        )?.name
+                                        )?.id
+                                    }
+                                    type={
+                                        users.find(
+                                            (user) => user.id === log.id_user
+                                        )?.type
                                     }
                                     prevCol={
                                         previousLogs?.find(
-                                            (prev_log) => prev_log.id_user === log.id_user
+                                            (prev_log) =>
+                                                prev_log.id_user === log.id_user
                                         )?.col ?? 0
                                     }
                                 />
                             </div>
+                            
                         </div>
                     ))}
                 </div>

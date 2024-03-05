@@ -1,12 +1,10 @@
 import React from "react";
-import UserInterface from "./components/UserInterface";
+import App from "./components/App";
 
-const Home: React.FC = () => {
-  return (
-    <div>
-      <UserInterface backendName="flask" />
-    </div>
-  );
-}
+const Home = () => {
+    return (
+        <App />
+    );
+};
 
 export default Home;

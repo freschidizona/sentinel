@@ -6,11 +6,12 @@ import { User } from "../interfaces/UserInterface";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-const OperatorCard: React.FC<{ log: Log; username: any; prevCol: any }> = ({
-    log,
-    username,
-    prevCol,
-}) => {
+const OperatorCard: React.FC<{
+    log: Log;
+    username: any;
+    type: any;
+    prevCol: any;
+}> = ({ log, username, prevCol }) => {
     const MAX_COLS = 12;
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
@@ -42,45 +43,60 @@ const OperatorCard: React.FC<{ log: Log; username: any; prevCol: any }> = ({
     useGSAP(
         () => {
             gsap.fromTo(
-                ".box", 
-                {x: mapValue(prevCol, 0, MAX_COLS, 100, screenWidth - 100)}, 
-                {x: mapValue(log.col, 0, MAX_COLS, 100, screenWidth - 100)}
+                ".box",
+                { x: mapValue(prevCol, 0, MAX_COLS, 100, screenWidth - 100) },
+                { x: mapValue(log.col, 0, MAX_COLS, 100, screenWidth - 100) }
             );
         },
         { scope: log.ref }
     );
 
+    const updateType = async (userId: number) => {
+        // try {
+            
+        //     await axios.update(`${apiUrl}/api/${backendName}/users/${userId}`);
+        //     setUsers(users.filter((user) => user.id !== userId));
+        // } catch (error) {
+        //     console.error("Error Updating Type: ", error);
+        // }
+    }
+
     return (
         <div className={`p-2`}>
             <div ref={log.ref} className="app">
                 <div className="box flex flex-col items-center">
-                    <h1 className="text-sm font-sm tracking-tight text-gray-800 py-2">
+                    <h1 className="text-xs font-sm tracking-tight text-gray-400 py-2">
                         {username}
                     </h1>
                     <div className="flex justify-center justify-between items-center">
                         <span className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+                            <span
+                                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                    log.type === 0
+                                        ? "bg-green-400"
+                                        : "bg-red-400"
+                                }`}
+                            ></span>
+                            <span
+                                className={`relative inline-flex rounded-full h-3 w-3 ${
+                                    log.type === 0
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
+                                }`}
+                            ></span>
                         </span>
-                        {/* <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-6 h-6"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                            />
-                        </svg> */}
                     </div>
-                    <h1 className="text-sm font-sm tracking-tight text-gray-500 py-2 animate-pulse">
-                        {log.bpm}
+                    <h1 className="text-xs font-sm tracking-tight text-gray-500 py-2 animate-pulse">
+                        COL : {log.col} BPM : {log.bpm}, TEMP : {log.temp}
                     </h1>
-                    
+                    <button
+                        onClick={() => updateType(username)}
+                        className={`bg-blue-500 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl ${
+                            log.type === 0 ? "hidden" : ""
+                        }`}
+                    >
+                        ACK
+                    </button>
                 </div>
             </div>
         </div>
