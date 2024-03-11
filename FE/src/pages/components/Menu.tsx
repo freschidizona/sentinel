@@ -13,7 +13,7 @@ const Menu = () => {
                             className="w-8 h-8 mx-auto"
                         />
                         <span className="self-center text-lg font-mono whitespace-nowrap dark:text-white">
-                            Sentinel
+                            Sentinel<p className="my-[-8px] text-sm text-gray-500">Be safe everytime</p>
                         </span>
                     </a>
                     <div className="flex items-center space-x-6">

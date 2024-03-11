@@ -1,21 +1,28 @@
 #region Imports
-from flask import Flask, request, jsonify, make_response
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify, make_response, session
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_mqtt import Mqtt
+from flask_socketio import SocketIO, emit
+from flask_session import Session
+from config import ApplicationConfig
+from models import db, Admin, User, Log, Anchor
+from sqlalchemy import event, DDL
+import datetime
 from os import environ
 import json
-
 #endregion
 
-#region Flask, SQLAlchemy
+#region Flask, SQLAlchemy, Bcrypt, Websockets
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 bcrypt = Bcrypt(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+app.config.from_object(ApplicationConfig)
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+server_session = Session(app)
+socketio = SocketIO(app)
 #endregion
 
 #region Utils
@@ -60,50 +67,32 @@ def handle_mqtt_message(client, userdata, message):
 
    payload=json.loads(data)
 
-   print('Received message on topic:' + message.topic + ' with payload: ' + data)
+   # print('Received message on topic:' + message.topic + ' with payload: ' + data)
    
-   _create_user(str(payload.get('user_addr')))
-   create_log(payload)
-#endregion
-
-#region Models
-class Admin(db.Model):
-    __tablename__ = 'admins'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(42), unique=False, nullable=False)
-    surname = db.Column(db.String(42), unique=False, nullable=False)
-    email = db.Column(db.String(42), unique=True, nullable=False)
-    password = db.Column(db.String(96), unique=False, nullable=False)
-
-    def json(self):
-        return { 'id' : self.id, 'name' : self.name, 'surname' : self.surname, 'email' : self.email, 'password' : self.password }
-class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.String(80), primary_key=True)
-    name = db.Column(db.String(80), unique=False, nullable=True)
-
-    def json(self):
-        return { 'id' : self.id, 'name' : self.name }
-
-class Log(db.Model):
-    __tablename__ = 'log'
-    id = db.Column(db.Integer, primary_key=True)
-    id_user = db.Column(db.String(80), db.ForeignKey('users.id'))
-    col = db.Column(db.Integer, unique=False, nullable=False)
-    strength = db.Column(db.Float, unique=False, nullable=False)
-    bpm = db.Column(db.Integer, unique=False, nullable=False)
-    temp = db.Column(db.Integer, unique=False, nullable=False)
-    type = db.Column(db.Integer, unique=False, nullable=False)
-    created_on = db.Column(db.DateTime, server_default=db.func.now())
-    updated_on = db.Column(db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
-
-    def json(self):
-        return { 'id' : self.id, 'id_user' : self.id_user, 'col' : self.col, 'strength' : self.strength, 'created_on' : self.created_on, 'updated_on' : self.updated_on }
-
-db.create_all()
+   # _create_user(str(payload.get('user_addr')))
+   # create_log(payload)
 #endregion
 
 #region Routes
+
+#region WS
+@socketio.on('message')
+def handle_message(data):
+    print('received message: ' + data)
+    emit('my response', data, broadcast=True) # my response is event name for UI
+
+@socketio.on('json')
+def handle_json(json):
+    print('received json: ' + str(json))
+
+@socketio.on('my event')
+def handle_my_custom_event(json):
+    print('received json: ' + str(json))
+
+@socketio.on('my_event')
+def handle_my_custom_event(arg1, arg2, arg3):
+    print('received args: ' + arg1 + arg2 + arg3)
+#endregion
 
 #region Admins
 @app.route('/api/flask/register', methods=['POST']) # Create a new User
@@ -119,6 +108,7 @@ def register():
         db.session.add(admin)
         db.session.commit() # Commit this session
 
+        session["user_id"] = admin.id
         return jsonify({ # Return the new obj itself to handle ID
             'id' : admin.id,
             'name' : admin.name,
@@ -141,17 +131,42 @@ def login():
         if not bcrypt.check_password_hash(admin.password, data['password']):
             return jsonify({"error": "Unauthorized"}), 401
         
-        # session["user_id"] = user.id
+        session["user_id"] = admin.id
         return jsonify({
             "id": admin.id,
             "email": admin.email
         })
     except Exception as e:
         return make_response(jsonify({'message' : 'Error while logging : ', 'error' : str(e)}), 500)
+
+@app.route("/api/flask/logout", methods=["POST"])
+def logout_user():
+    try:
+        session.pop("user_id")
+        return "200"
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error while logging out : ', 'error' : str(e)}), 500)
+
+@app.route("/api/flask/@me", methods=["GET"])
+def get_current_user():
+    try:
+        user_id = session.get("user_id")
+
+        if not user_id:
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        user = Admin.query.filter_by(id=user_id).first()
+        return jsonify({
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "email": user.email
+        })
+    except Exception as e:
+            return make_response(jsonify({'message' : 'Error while getting current Admin : ', 'error' : str(e)}), 500)
 #endregion
 
-
-
+#region Users
 @app.route('/api/flask/users', methods=['POST']) # Create a new User
 def create_user():
     try:
@@ -175,8 +190,78 @@ def get_users():
         return jsonify(users_data), 200
     except Exception as e:
         return make_response(jsonify({'message' : 'Error getting all Users : ', 'error' : str(e)}), 500)
+#endregion
 
-@app.route('/api/flask/logs', methods=['GET']) # Get all Users
+#region Anchors
+@app.route('/api/flask/anchors', methods=['POST'])
+def create_anchor():
+    try:
+        data = request.get_json(force=True)
+        new_anchor = Anchor(address = data['address'], status = data['status'])
+        db.session.add(new_anchor)
+        db.session.commit()
+
+        return jsonify(data), 201
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error creating new Anchor : ', 'error' : str(e)}), 500)
+
+@app.route('/api/flask/anchors/<address>', methods=['PUT'])
+def ping_anchor(address):
+    try:
+        anchor = Anchor.query.filter_by(address = address).first()
+        if anchor:
+            anchor.created_on = datetime.datetime.now()
+            db.session.commit()
+            return make_response(jsonify({'message' : 'Anchor updated!'}), 200)
+        return make_response(jsonify({'message' : 'Anchor not found!'}), 404)
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
+
+# Trigger to set Anchor's state equals to 1 if updated_on < datetime.now() - 1h | DA RIVEDERE
+def update_anchor_state():
+    try:
+        update_anchor_state = DDL('''\
+            CREATE TRIGGER update_anchor_state UPDATE OF updated_on ON anchors
+            BEGIN
+                UPDATE anchors SET status = 1 WHERE (updated_on < datetime('now', '-1 hour'));
+            END;''')
+        event.listen(Anchor.__table__, 'after_create', update_anchor_state)
+        db.session.commit()
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
+
+@app.route('/api/flask/anchors', methods=['GET'])
+def get_anchors():
+    try:
+        anchors = Anchor.query.all()
+        anchor_data = [{ 'id' : anchor.id, 'address' : anchor.address, 'status' : anchor.status, 'created_on' : anchor.created_on, 'updated_on' : anchor.updated_on } for anchor in anchors]
+        return jsonify(anchor_data), 200
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error getting all Anchors : ', 'error' : str(e)}), 500)
+    
+# scheduler.every(1).hour.do(update_anchor_state.execute)
+#endregion
+
+
+@app.route('/api/flask/logs', methods=['POST']) 
+def _create_log():
+    try:
+        data = request.get_json(force=True)
+        new_log = Log(
+            id_user = data['id_user'], 
+            col = data['col'], 
+            strength = data['strength'], 
+            bpm = data['bpm'], 
+            temp = data['temp'], 
+            type = data['type'])
+        db.session.add(new_log)
+        db.session.commit()
+
+        return jsonify(data), 201
+    except Exception as e:
+        return make_response(jsonify({'message' : 'Error creating new Log : ', 'error' : str(e)}), 500)
+
+@app.route('/api/flask/logs', methods=['GET'])
 def get_logs():
     try:
         logs = Log.query.all()
@@ -207,5 +292,6 @@ def get_latest_logs():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=4000)
+    # app.run(host='0.0.0.0', port=4000)
+    socketio.run(app, host='0.0.0.0', port=4000)
 

@@ -1,8 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import Menu from "./components/Menu";
 import { UserInterfaceProps } from "./interfaces/UserInterfaceProps";
+import axios from "axios";
+import client from "./client";
 
-const Login: React.FC<UserInterfaceProps> = ({ backendName }) => {
+// interface Admin {
+//     email: string;
+//     password: string;
+// }
+
+// Elimina UserInterfaceProps ed utilizza Interfaccia per email e password
+
+const Login = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const backendName = process.env.NEXT_PUBLIC_BACKEND_NAME;
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    // const [admin, setAdmin] = useState<Admin>();
+  
+    const logInUser = async () => {
+      console.log(email, password);
+  
+      try {
+        const resp = await client.post(`${apiUrl}/api/${backendName}/login`, {
+            email,
+            password,
+        });
+        window.location.href = "/";
+      } catch (error: any) {
+        if (error.response.status === 401) {
+            alert("Invalid credentials");
+        }
+      }
+    };
+  
+
     return (
         <div className="bg-neomorphism w-screen h-screen">
             <Menu />
@@ -30,6 +62,7 @@ const Login: React.FC<UserInterfaceProps> = ({ backendName }) => {
                                             id="email"
                                             className="bg-neomorphism border-blue-200 focus:border-blue-500 border-b-2 text-gray-900 sm:text-sm block w-full p-2.5 outline-none"
                                             placeholder="your-cool-email"
+                                            onChange={(e) => setEmail(e.target.value)}
                                         />
                                     </div>
                                     <div>
@@ -39,11 +72,13 @@ const Login: React.FC<UserInterfaceProps> = ({ backendName }) => {
                                             id="password"
                                             placeholder="your-super-secret-password"
                                             className="bg-neomorphism border-blue-200 focus:border-blue-500 border-b-2 text-gray-900 sm:text-sm block w-full p-2.5 outline-none"
+                                            onChange={(e) => setPassword(e.target.value)}
                                         />
                                     </div>
                                     <button
-                                        type="submit"
+                                        type="button"
                                         className="shadow-neo bg-gradient-to-r from-cyan-500 to-blue-500 w-full text-white font-medium rounded-xl text-sm px-5 py-2.5 text-center"
+                                        onClick={() => logInUser()}
                                     >
                                         Sign in
                                     </button>
