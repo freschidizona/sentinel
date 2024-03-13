@@ -11,21 +11,18 @@ const AnchorTable = () => {
     const [anchors, setAnchors] = useState<Anchor[]>([]);
     const [data, setData] = useState([]);
 
-    // useEffect(() => {
-    //     const URL = "http://localhost:4000";
-    //     socket?.connect();
-    //     console.log("Socket: ", socket);
-        
-    //     // socket?.emit("handle_message");
+    useEffect(() => {
+        const URL = "http://localhost:4000";
+        socket?.connect();
 
-    //     // socket?.on("data", (data) => {
-    //     //     console.log(data);
-    //     // })
+        socket?.emit("anchors");
 
-    //     // return () => {
-    //     //     socket.off('anchors', onAnchorEvent);
-    //     // };
-    // }, []);
+        socket?.on("anchorsEvent", (res) => {
+            console.log(res.data.reverse());
+            setAnchors(res.data.reverse());
+        });
+
+    }, []);
 
     return (
         <div className="py-12">

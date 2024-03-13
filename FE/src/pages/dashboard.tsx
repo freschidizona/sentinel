@@ -30,11 +30,11 @@ const App: React.FC<UserInterfaceProps> = () => {
         const URL = "http://localhost:4000";
         socket?.connect();
 
-        socket?.emit("anchors");
+        // socket?.emit("anchors");
 
-        socket?.on("anchorsEvent", (data) => {
-            console.log(data);
-        })
+        // socket?.on("anchorsEvent", (data) => {
+        //     console.log(data);
+        // })
 
     }, []);
 

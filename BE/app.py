@@ -91,7 +91,7 @@ def connect(data):
     }, broadcast=True)
 
 @socketio.on('anchors')
-def _():
+def get_anchors():
     print('Anchors')
     anchors = Anchor.query.all()
     anchor_data = [{ 
