@@ -15,14 +15,15 @@ import json
 
 #region Flask, SQLAlchemy, Bcrypt, Websockets
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+
 bcrypt = Bcrypt(app)
 app.config.from_object(ApplicationConfig)
 db.init_app(app)
 with app.app_context():
     db.create_all()
 server_session = Session(app)
-socketio = SocketIO(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+socketio = SocketIO(app, cors_allowed_origins='*')
 #endregion
 
 #region Utils
@@ -80,6 +81,23 @@ def handle_mqtt_message(client, userdata, message):
 def handle_message(data):
     print('received message: ' + data)
     emit('my response', data, broadcast=True) # my response is event name for UI
+
+@socketio.on('connect')
+def connect():
+    print('Someone connected to websocket!')
+    print('Client connected: ' + request.sid)
+
+@socketio.on('disconnect')
+def disconnect():
+    print('Client disconnected: ' + request.sid)
+
+@socketio.on('handle_message')
+def connect(data):
+    print('Data from client: ' + str(data))
+    emit('data', {
+        'data': data,
+        'id': request.sid
+    }, broadcast=True)
 
 @socketio.on('json')
 def handle_json(json):

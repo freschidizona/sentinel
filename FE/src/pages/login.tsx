@@ -28,9 +28,7 @@ const Login = () => {
         });
         window.location.href = "/";
       } catch (error: any) {
-        if (error.response.status === 401) {
-            alert("Invalid credentials");
-        }
+            console.log(error);
       }
     };
   

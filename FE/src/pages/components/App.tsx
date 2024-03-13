@@ -4,7 +4,6 @@ import Login from "../login";
 import Link from "next/link";
 import client from "../client";
 import { UserInterfaceProps } from "../interfaces/UserInterfaceProps";
-import { io } from 'socket.io-client';
 import { socket } from "../socket";
 
 interface User {
@@ -14,51 +13,50 @@ interface User {
     surname: string;
 }
 
-const App : React.FC<UserInterfaceProps> = ({ backendName }) => {
-    // const socket = socketIO.connect('ws://localhost:4000');
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const wsUrl = 'http://localhost:4000';
-
+const App: React.FC<UserInterfaceProps> = ({ backendName }) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [user, setUser] = useState<User>();
-    const [isConnected, setIsConnected] = useState(socket.connected);
+
+    const [isConnected, setIsConnected] = useState();
+  
+    // useEffect(() => {
+    //   function onConnect() {
+    //     setIsConnected(true);
+    //     console.log('connected!');
+    //   }
+  
+    //   function onDisconnect() {
+    //     setIsConnected(false);
+    //   }
+  
+    //   socket?.on('connect', onConnect);
+    //   socket?.on('disconnect', onDisconnect);
+  
+    //   return () => {
+    //     socket?.off('connect', onConnect);
+    //     socket?.off('disconnect', onDisconnect);
+    //   };
+    // }, []);
+
 
     const logoutUser = async () => {
         await client.post(`${apiUrl}/api/${backendName}/logout`);
         window.location.href = "/";
     };
-    
+
     useEffect(() => {
         (async () => {
             try {
                 console.log("Authenticating...");
-                const resp = await client.get(`${apiUrl}/api/${backendName}/@me`);
+                const resp = await client.get(
+                    `${apiUrl}/api/${backendName}/@me`
+                );
                 setUser(resp.data);
             } catch (error) {
                 console.log("Not authenticated");
             }
         })();
     }, []);
-
-    const connection = useRef(null)
-
-    useEffect(() => {
-      const socket = new WebSocket("ws://localhost:4000")
-  
-      // Connection opened
-      socket.addEventListener("open", (event) => {
-        socket.send("Connection established")
-      })
-  
-      // Listen for messages
-      socket.addEventListener("message", (event) => {
-        console.log("Message from server ", event.data)
-      })
-  
-      connection.current = ws
-  
-      return () => connection.close();
-    }, [])
-
 
     return user != null ? (
         <div className="bg-neomorphism w-screen h-screen">
@@ -71,7 +69,10 @@ const App : React.FC<UserInterfaceProps> = ({ backendName }) => {
                             className="w-8 h-8 mx-auto"
                         />
                         <span className="self-center text-lg font-md whitespace-nowrap">
-                            Sentinel<p className="my-[-8px] text-sm text-gray-500">Be safe everytime</p>
+                            Sentinel
+                            <p className="my-[-8px] text-sm text-gray-500">
+                                Be safe everytime
+                            </p>
                         </span>
                     </a>
                     <div className="flex items-center space-x-6">
@@ -82,9 +83,15 @@ const App : React.FC<UserInterfaceProps> = ({ backendName }) => {
                             (39) 392 123 1722
                         </a>
                         <p className="text-sm">
-                            <span className="text-gray-600">Benvenuto</span> {user.name} {user.surname}!
+                            <span className="text-gray-600">Benvenuto</span>{" "}
+                            {user.name} {user.surname}!
                         </p>
-                        <button className="text-sm text-gray-500" onClick={logoutUser}>Logout</button>
+                        <button
+                            className="text-sm text-gray-500"
+                            onClick={logoutUser}
+                        >
+                            Logout
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -115,7 +122,7 @@ const App : React.FC<UserInterfaceProps> = ({ backendName }) => {
                 </div>
             </div>
         </div>
-    ) : ( null );
+    ) : null;
 };
 
 export default App;

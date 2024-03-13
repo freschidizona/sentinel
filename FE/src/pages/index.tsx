@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import App from "./components/App";
 
 const Home: React.FC = () => {
@@ -7,7 +7,7 @@ const Home: React.FC = () => {
             <App backendName="flask" />
         </div>
     );
-}
+};
 
 export default Home;
 
@@ -21,7 +21,6 @@ export default Home;
 //     () => import('./components/App'),
 //     { ssr: false }
 //   )
-  
 
 // function Home() {
 //     if (typeof window !== "undefined") {
