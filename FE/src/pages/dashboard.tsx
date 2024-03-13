@@ -9,7 +9,7 @@ import AnchorTable from "./components/AnchorTable";
 import NotifyTable from "./components/NotifyTable";
 
 import { UserInterfaceProps } from "./interfaces/UserInterfaceProps";
-import io from "socket.io-client";
+import { socket as Socket } from "./socket";
 
 interface User {
     id: string;
@@ -24,15 +24,18 @@ const App: React.FC<UserInterfaceProps> = () => {
 
     const [isConnected, setIsConnected] = useState();
 
+    const socket = Socket;
+
     useEffect(() => {
         const URL = "http://localhost:4000";
-        const socket = io(URL);
-        socket?.emit("message", "Hello");
+        socket?.connect();
 
-        // return () => {
-        //     socket?.off('connect', onConnect);
-        //     socket?.off('disconnect', onDisconnect);
-        // };
+        socket?.emit("anchors");
+
+        socket?.on("anchorsEvent", (data) => {
+            console.log(data);
+        })
+
     }, []);
 
     const logoutUser = async () => {
@@ -97,7 +100,7 @@ const App: React.FC<UserInterfaceProps> = () => {
                         className="w-40 h-40 mx-auto"
                     />
                     <div className="flex items-center justify-center px-6 py-8 mx-auto">
-                        <AnchorTable />
+                        <AnchorTable/>
                         <LogTable />
                         <NotifyTable />
                     </div>

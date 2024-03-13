@@ -80,7 +80,7 @@ def handle_mqtt_message(client, userdata, message):
 @socketio.on('message')
 def handle_message(data):
     print('received message: ' + data)
-    emit('my response', data, broadcast=True) # my response is event name for UI
+    socketio.emit('response', data) # my response is event name for UI
 
 @socketio.on('handle_message')
 def connect(data):
@@ -90,13 +90,29 @@ def connect(data):
         'id': request.sid
     }, broadcast=True)
 
+@socketio.on('anchors')
+def _():
+    print('Anchors')
+    anchors = Anchor.query.all()
+    anchor_data = [{ 
+        'id' : anchor.id, 
+        'address' : anchor.address, 
+        'status' : anchor.status, 
+        'created_on' : anchor.created_on.strftime('%Y-%m-%d %H:%M:%S'), 
+        'updated_on' : anchor.updated_on.strftime('%Y-%m-%d %H:%M:%S') } for anchor in anchors]
+    emit('anchorsEvent', {
+        'data': anchor_data,
+        'id': request.sid
+    }, broadcast=True)
+
 @socketio.on('json')
 def handle_json(json):
     print('received json: ' + str(json))
 
-@socketio.on('my event')
-def handle_my_custom_event(json):
-    print('received json: ' + str(json))
+@socketio.on('event')
+def handle_my_custom_event():
+    print('received event: ')
+    emit('event', "data") # my response is event name for UI("Data");
 
 @socketio.on('my_event')
 def handle_my_custom_event(arg1, arg2, arg3):
@@ -136,9 +152,9 @@ def login():
         admin = Admin.query.filter_by(email=data['email']).first()
 
         if admin is None:
-            return jsonify({"error": "Unauthorized"}), 401
+            return jsonify({"error": "Admin do not found in DB"}), 401
         if not bcrypt.check_password_hash(admin.password, data['password']):
-            return jsonify({"error": "Unauthorized"}), 401
+            return jsonify({"error": "Error, wrong password"}), 401
         
         session["user_id"] = admin.id
         return jsonify({
@@ -226,6 +242,20 @@ def ping_anchor(address):
     except Exception as e:
         return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
 
+# @socketio.on('anchors')
+# def get_anchors():
+#     try:
+#         print('[INFO] Getting Anchors')
+#         anchors = Anchor.query.all()
+#         anchor_data = [{ 'id' : anchor.id, 'address' : anchor.address, 'status' : anchor.status, 'created_on' : anchor.created_on, 'updated_on' : anchor.updated_on } for anchor in anchors]
+#         print(anchor_data)
+#         emit('data', {
+#             'data': anchor_data,
+#             'id': request.sid
+#         }, broadcast=True)
+#     except Exception as e:
+#         return make_response(jsonify({'message' : 'Error getting all Anchors : ', 'error' : str(e)}), 500)
+
 # Trigger to set Anchor's state equals to 1 if updated_on < datetime.now() - 1h | DA RIVEDERE
 def update_anchor_state():
     try:
@@ -238,15 +268,6 @@ def update_anchor_state():
         db.session.commit()
     except Exception as e:
         return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
-
-@app.route('/api/anchors', methods=['GET'])
-def get_anchors():
-    try:
-        anchors = Anchor.query.all()
-        anchor_data = [{ 'id' : anchor.id, 'address' : anchor.address, 'status' : anchor.status, 'created_on' : anchor.created_on, 'updated_on' : anchor.updated_on } for anchor in anchors]
-        return jsonify(anchor_data), 200
-    except Exception as e:
-        return make_response(jsonify({'message' : 'Error getting all Anchors : ', 'error' : str(e)}), 500)
     
 # scheduler.every(1).hour.do(update_anchor_state.execute)
 #endregion

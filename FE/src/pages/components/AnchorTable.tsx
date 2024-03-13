@@ -1,6 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { socket } from "../socket";
+
+export interface Anchor {
+    id: number;
+    status: number;
+}
 
 const AnchorTable = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const [anchors, setAnchors] = useState<Anchor[]>([]);
+    const [data, setData] = useState([]);
+
+    // useEffect(() => {
+    //     const URL = "http://localhost:4000";
+    //     socket?.connect();
+    //     console.log("Socket: ", socket);
+        
+    //     // socket?.emit("handle_message");
+
+    //     // socket?.on("data", (data) => {
+    //     //     console.log(data);
+    //     // })
+
+    //     // return () => {
+    //     //     socket.off('anchors', onAnchorEvent);
+    //     // };
+    // }, []);
+
     return (
         <div className="py-12">
             <div className="max-w-sm sm:px-6 lg:px-8">
@@ -30,62 +56,19 @@ const AnchorTable = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="h-96 overflow-y-auto">
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                OFFLINE
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                OFFLINE
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                ONLINE
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                ONLINE
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                ONLINE
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                ONLINE
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                1
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                ONLINE
-                                                            </td>
-                                                        </tr>
+                                                        {anchors?.map((anchor) => (
+                                                            <tr
+                                                                key={anchor.id}
+                                                                className="bg-white border-b text-gray-800"
+                                                            >
+                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                    {anchor.id}
+                                                                </td>
+                                                                <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
+                                                                    {anchor.status == 0 ? "ONLINE" : "OFFLINE"}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
                                                     </tbody>
                                                 </table>
                                             </div>
