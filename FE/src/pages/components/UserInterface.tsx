@@ -8,11 +8,8 @@ import OperatorCard from "./OperatorCard";
 import { Log } from "../interfaces/LogInterface";
 import { User } from "../interfaces/UserInterface";
 
-interface UserInterfaceProps {
-    backendName: string;
-}
 
-const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
+const UserInterface = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
     const [users, setUsers] = useState<User[]>([]);
@@ -31,7 +28,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
         const fetchUsers = async () => {
             try {
                 const response = await axios.get(
-                    `${apiUrl}/api/${backendName}/users`
+                    `${apiUrl}/api/users`
                 );
                 console.log(response.data);
                 setUsers(response.data.reverse());
@@ -47,7 +44,7 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
                 setPreviousLogs(previousData);
                 console.log("Previous Data: ", previousData);
                 const response = await axios.get(
-                    `${apiUrl}/api/${backendName}/latest_logs`
+                    `${apiUrl}/api/latest_logs`
                 );
 
                 previousData = response.data.reverse();
@@ -62,14 +59,14 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
             fetchData();
             fetchUsers();
         }, 5000);
-    }, [backendName, apiUrl]);
+    }, [apiUrl]);
 
     return (
         <div className="isolate my-8">
             <div className="relative px-6 lg:px-8">
                 <img
                     src={`/logo.png`}
-                    alt={`${backendName} Logo`}
+                    alt={`Logo`}
                     className="w-40 h-40 mx-auto"
                 />
                 <div className="mx-auto max-w-3xl pt-20 pb-32 sm:pt-48 sm:pb-40">

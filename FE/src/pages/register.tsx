@@ -10,7 +10,7 @@ interface User {
     password: string;
 }
 
-const Register: React.FC<UserInterfaceProps> = ({ backendName }) => {
+const Register: React.FC<UserInterfaceProps> = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [users, setUsers] = useState<User[]>([]);
     const [newUser, setNewUser] = useState({ name: '', surname: '', email: '', password: '' });
@@ -18,7 +18,7 @@ const Register: React.FC<UserInterfaceProps> = ({ backendName }) => {
     const createUser = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${apiUrl}/api/${backendName}/register`, newUser);
+            const response = await axios.post(`${apiUrl}/api/register`, newUser);
             setUsers([response.data, ...users]);
             setNewUser({ name: '', surname: '', email: '', password: '' });
         } catch (error) {

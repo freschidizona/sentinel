@@ -82,15 +82,6 @@ def handle_message(data):
     print('received message: ' + data)
     emit('my response', data, broadcast=True) # my response is event name for UI
 
-@socketio.on('connect')
-def connect():
-    print('Someone connected to websocket!')
-    print('Client connected: ' + request.sid)
-
-@socketio.on('disconnect')
-def disconnect():
-    print('Client disconnected: ' + request.sid)
-
 @socketio.on('handle_message')
 def connect(data):
     print('Data from client: ' + str(data))
@@ -113,7 +104,7 @@ def handle_my_custom_event(arg1, arg2, arg3):
 #endregion
 
 #region Admins
-@app.route('/api/flask/register', methods=['POST']) # Create a new User
+@app.route('/api/register', methods=['POST']) # Create a new User
 def register():
     try:
         data = request.get_json(force=True)
@@ -136,7 +127,7 @@ def register():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new Admin : ', 'error' : str(e)}), 500)
 
-@app.route('/api/flask/login', methods=['POST']) # Create a new User
+@app.route('/api/login', methods=['POST']) # Create a new User
 def login():
     try:
         data = request.get_json(force=True)
@@ -157,7 +148,7 @@ def login():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error while logging : ', 'error' : str(e)}), 500)
 
-@app.route("/api/flask/logout", methods=["POST"])
+@app.route("/api/logout", methods=["POST"])
 def logout_user():
     try:
         session.pop("user_id")
@@ -165,7 +156,7 @@ def logout_user():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error while logging out : ', 'error' : str(e)}), 500)
 
-@app.route("/api/flask/@me", methods=["GET"])
+@app.route("/api/@me", methods=["GET"])
 def get_current_user():
     try:
         user_id = session.get("user_id")
@@ -185,7 +176,7 @@ def get_current_user():
 #endregion
 
 #region Users
-@app.route('/api/flask/users', methods=['POST']) # Create a new User
+@app.route('/api/users', methods=['POST']) # Create a new User
 def create_user():
     try:
         data = request.get_json(force=True) # Get data from request
@@ -200,7 +191,7 @@ def create_user():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new User : ', 'error' : str(e)}), 500)
 
-@app.route('/api/flask/users', methods=['GET']) # Get all Users
+@app.route('/api/users', methods=['GET']) # Get all Users
 def get_users():
     try:
         users = User.query.all() # Get all Users from table
@@ -211,7 +202,7 @@ def get_users():
 #endregion
 
 #region Anchors
-@app.route('/api/flask/anchors', methods=['POST'])
+@app.route('/api/anchors', methods=['POST'])
 def create_anchor():
     try:
         data = request.get_json(force=True)
@@ -223,7 +214,7 @@ def create_anchor():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new Anchor : ', 'error' : str(e)}), 500)
 
-@app.route('/api/flask/anchors/<address>', methods=['PUT'])
+@app.route('/api/anchors/<address>', methods=['PUT'])
 def ping_anchor(address):
     try:
         anchor = Anchor.query.filter_by(address = address).first()
@@ -248,7 +239,7 @@ def update_anchor_state():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
 
-@app.route('/api/flask/anchors', methods=['GET'])
+@app.route('/api/anchors', methods=['GET'])
 def get_anchors():
     try:
         anchors = Anchor.query.all()
@@ -261,7 +252,7 @@ def get_anchors():
 #endregion
 
 
-@app.route('/api/flask/logs', methods=['POST']) 
+@app.route('/api/logs', methods=['POST']) 
 def _create_log():
     try:
         data = request.get_json(force=True)
@@ -279,7 +270,7 @@ def _create_log():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new Log : ', 'error' : str(e)}), 500)
 
-@app.route('/api/flask/logs', methods=['GET'])
+@app.route('/api/logs', methods=['GET'])
 def get_logs():
     try:
         logs = Log.query.all()
@@ -288,7 +279,7 @@ def get_logs():
         return jsonify(logs_data), 200
     except Exception as e:
         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500) 
-@app.route('/api/flask/latest_logs', methods=['GET']) # Get all Users
+@app.route('/api/latest_logs', methods=['GET']) # Get all Users
 def get_latest_logs():
     try:
         logs = Log.query.all()

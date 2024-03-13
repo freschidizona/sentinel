@@ -54,7 +54,7 @@ const OperatorCard: React.FC<{
     const updateType = async (userId: number) => {
         // try {
             
-        //     await axios.update(`${apiUrl}/api/${backendName}/users/${userId}`);
+        //     await axios.update(`${apiUrl}/api/users/${userId}`);
         //     setUsers(users.filter((user) => user.id !== userId));
         // } catch (error) {
         //     console.error("Error Updating Type: ", error);

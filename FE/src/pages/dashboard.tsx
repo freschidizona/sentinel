@@ -1,10 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import Menu from "./Menu";
-import Login from "../login";
+import Menu from "./components/Menu";
+import Login from "./login";
 import Link from "next/link";
-import client from "../client";
-import { UserInterfaceProps } from "../interfaces/UserInterfaceProps";
-import { socket } from "../socket";
+import client from "./client";
+
+import LogTable from "./components/LogTable";
+import AnchorTable from "./components/AnchorTable";
+import NotifyTable from "./components/NotifyTable";
+
+import { UserInterfaceProps } from "./interfaces/UserInterfaceProps";
+import io from "socket.io-client";
 
 interface User {
     id: string;
@@ -13,34 +18,25 @@ interface User {
     surname: string;
 }
 
-const App: React.FC<UserInterfaceProps> = ({ backendName }) => {
+const App: React.FC<UserInterfaceProps> = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [user, setUser] = useState<User>();
 
     const [isConnected, setIsConnected] = useState();
-  
-    // useEffect(() => {
-    //   function onConnect() {
-    //     setIsConnected(true);
-    //     console.log('connected!');
-    //   }
-  
-    //   function onDisconnect() {
-    //     setIsConnected(false);
-    //   }
-  
-    //   socket?.on('connect', onConnect);
-    //   socket?.on('disconnect', onDisconnect);
-  
-    //   return () => {
-    //     socket?.off('connect', onConnect);
-    //     socket?.off('disconnect', onDisconnect);
-    //   };
-    // }, []);
 
+    useEffect(() => {
+        const URL = "http://localhost:4000";
+        const socket = io(URL);
+        socket?.emit("message", "Hello");
+
+        // return () => {
+        //     socket?.off('connect', onConnect);
+        //     socket?.off('disconnect', onDisconnect);
+        // };
+    }, []);
 
     const logoutUser = async () => {
-        await client.post(`${apiUrl}/api/${backendName}/logout`);
+        await client.post(`${apiUrl}/api/logout`);
         window.location.href = "/";
     };
 
@@ -48,9 +44,7 @@ const App: React.FC<UserInterfaceProps> = ({ backendName }) => {
         (async () => {
             try {
                 console.log("Authenticating...");
-                const resp = await client.get(
-                    `${apiUrl}/api/${backendName}/@me`
-                );
+                const resp = await client.get(`${apiUrl}/api/@me`);
                 setUser(resp.data);
             } catch (error) {
                 console.log("Not authenticated");
@@ -102,27 +96,19 @@ const App: React.FC<UserInterfaceProps> = ({ backendName }) => {
                         alt={`Sentinel Logo`}
                         className="w-40 h-40 mx-auto"
                     />
-                    <div className="mx-auto max-w-3xl pt-40 pb-32 sm:pt-48 sm:pb-40">
-                        <div>
-                            <div className="m-[-10rem]">
-                                <h1 className="text-2xl font-bold tracking-tight sm:text-center sm:text-6xl">
-                                    Sentinel
-                                </h1>
-                                <p className="mt-6 text-sm leading-8 text-gray-600 sm:text-center">
-                                    Solution for industrial maintenance in
-                                    complex tunnels, monitoring the position,
-                                    status, and well-being of operators <br />{" "}
-                                    with battery-powered devices, external IP
-                                    network, and a comprehensive administrative
-                                    service based on AI.
-                                </p>
-                            </div>
-                        </div>
+                    <div className="flex items-center justify-center px-6 py-8 mx-auto">
+                        <AnchorTable />
+                        <LogTable />
+                        <NotifyTable />
                     </div>
                 </div>
             </div>
         </div>
-    ) : null;
+    ) : (
+        <div className="text-3xl text-red font-bold my-8 text-center">
+            Error! User is not authenticated
+        </div>
+    );
 };
 
 export default App;

@@ -13,7 +13,6 @@ import client from "./client";
 
 const Login = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const backendName = process.env.NEXT_PUBLIC_BACKEND_NAME;
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     // const [admin, setAdmin] = useState<Admin>();
@@ -22,11 +21,11 @@ const Login = () => {
       console.log(email, password);
   
       try {
-        const resp = await client.post(`${apiUrl}/api/${backendName}/login`, {
+        const resp = await client.post(`${apiUrl}/api/login`, {
             email,
             password,
         });
-        window.location.href = "/";
+        window.location.href = "/dashboard";
       } catch (error: any) {
             console.log(error);
       }
