@@ -27,7 +27,7 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 #endregion
 
 #region Utils
-def _create_user(id):
+def mqtt_create_user(id):
     try:
         user = User.query.filter_by(id = id).first() # Get User by its ID
         if not user:
@@ -36,7 +36,7 @@ def _create_user(id):
             db.session.commit()
     except Exception as e:
         return
-def create_log(data):
+def mqtt_create_log(data):
     new_log = Log(id_user = data['user_addr'], col = data['col'], strength = data['rssi'], bpm = data['bpm'], temp = data['temp'], type = data['type']) # Create new user using User model
     db.session.add(new_log) # Add new log using SQLAlchemy
     db.session.commit() # Commit this session
@@ -63,36 +63,21 @@ def handle_connect(client, userdata, flags, rc):
 
 @mqtt_client.on_message()
 def handle_mqtt_message(client, userdata, message):
-   data = message.payload.decode()
-   data = data.replace("(", "").replace(")", "")
+    data = message.payload.decode()
+    data = data.replace("(", "").replace(")", "")
 
-   payload=json.loads(data)
+    payload=json.loads(data)
 
-   # print('Received message on topic:' + message.topic + ' with payload: ' + data)
-   
-   # _create_user(str(payload.get('user_addr')))
-   # create_log(payload)
+    # mqtt_create_user(str(payload.get('user_addr')))
+    mqtt_create_log(payload)
 #endregion
 
 #region Routes
 
-#region WS
-@socketio.on('message')
-def handle_message(data):
-    print('received message: ' + data)
-    socketio.emit('response', data) # my response is event name for UI
-
-@socketio.on('handle_message')
-def connect(data):
-    print('Data from client: ' + str(data))
-    emit('data', {
-        'data': data,
-        'id': request.sid
-    }, broadcast=True)
-
+#region SocketIO
 @socketio.on('anchors')
 def get_anchors():
-    print('Anchors')
+    print('[INFO] Emitting Anchors...')
     anchors = Anchor.query.all()
     anchor_data = [{ 
         'id' : anchor.id, 
@@ -100,23 +85,56 @@ def get_anchors():
         'status' : anchor.status, 
         'created_on' : anchor.created_on.strftime('%Y-%m-%d %H:%M:%S'), 
         'updated_on' : anchor.updated_on.strftime('%Y-%m-%d %H:%M:%S') } for anchor in anchors]
+    print(format(anchor_data))
     emit('anchorsEvent', {
         'data': anchor_data,
         'id': request.sid
     }, broadcast=True)
 
-@socketio.on('json')
-def handle_json(json):
-    print('received json: ' + str(json))
+@socketio.on('latestLogs')
+def get_latest_logs():
+    print('[INFO] Emitting Latest Logs...')
+    logs = Log.query\
+        .join(User, Log.id_user == User.id)\
+        .add_columns(Log, User.name)\
+        .filter(User.id == Log.id_user)\
+        .all()
+    logs_data = [{ 
+        'id' : log.id, 
+        'address' : log.name, 
+        'col' : log.col, 
+        'strength' : log.strength, 
+        'bpm' : log.bpm, 
+        'created_on': log.created_on.strftime('%Y-%m-%d %H:%M:%S') } for log in logs]
+    latest_logs_dict = {}
+    for log in logs_data:
+        id_user = log['id_user']
+        if id_user not in latest_logs_dict or log['created_on'] > latest_logs_dict[id_user]['created_on']:
+            latest_logs_dict[id_user] = log
+    latest_logs = list(latest_logs_dict.values())
 
-@socketio.on('event')
-def handle_my_custom_event():
-    print('received event: ')
-    emit('event', "data") # my response is event name for UI("Data");
+    print(format(latest_logs))
+    emit('latestLogsEvent', {
+        'data': latest_logs,
+        'id': request.sid
+    }, broadcast=True)
 
-@socketio.on('my_event')
-def handle_my_custom_event(arg1, arg2, arg3):
-    print('received args: ' + arg1 + arg2 + arg3)
+# @socketio.on('notify')
+# def get_notify():
+#     print('[INFO] Emitting Notify...')
+#     notify = Log.query.filter(Log.type == 2 or Log.type == 5).all()
+#     notify_data = [{ 
+#         'id' : notify.id, 
+#         'address' : notify.name, 
+#         'col' : notify.col, 
+#         'strength' : notify.strength, 
+#         'bpm' : notify.bpm, 
+#         'created_on': notify.created_on.strftime('%Y-%m-%d %H:%M:%S') } for notify in notify_data]
+#     print(format(notify_data))
+#     emit('notifyEvent', {
+#         'data': notify_data,
+#         'id': request.sid
+#     }, broadcast=True)
 #endregion
 
 #region Admins
@@ -221,11 +239,15 @@ def get_users():
 @app.route('/api/anchors', methods=['POST'])
 def create_anchor():
     try:
+        # Get data from request
         data = request.get_json(force=True)
+        # Create new anchor using Anchor model
         new_anchor = Anchor(address = data['address'], status = data['status'])
         db.session.add(new_anchor)
         db.session.commit()
-
+        # Emit anchors to all clients 
+        get_anchors()
+        # Return the new obj itself
         return jsonify(data), 201
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new Anchor : ', 'error' : str(e)}), 500)
@@ -233,6 +255,16 @@ def create_anchor():
 @app.route('/api/anchors/<address>', methods=['PUT'])
 def ping_anchor(address):
     try:
+        # anchors = Anchor.query.all()
+        # anchor_data = [{ 
+        #     'id' : anchor.id, 
+        #     'address' : anchor.address, 
+        #     'status' : anchor.status ,
+        #     'created_on' : anchor.created_on, 
+        #     'updated_on' : anchor.updated_on } for anchor in anchors]
+        
+        # Set anchors status to 1 if updated at is greater than 1 hour
+
         anchor = Anchor.query.filter_by(address = address).first()
         if anchor:
             anchor.created_on = datetime.datetime.now()
@@ -241,40 +273,11 @@ def ping_anchor(address):
         return make_response(jsonify({'message' : 'Anchor not found!'}), 404)
     except Exception as e:
         return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
-
-# @socketio.on('anchors')
-# def get_anchors():
-#     try:
-#         print('[INFO] Getting Anchors')
-#         anchors = Anchor.query.all()
-#         anchor_data = [{ 'id' : anchor.id, 'address' : anchor.address, 'status' : anchor.status, 'created_on' : anchor.created_on, 'updated_on' : anchor.updated_on } for anchor in anchors]
-#         print(anchor_data)
-#         emit('data', {
-#             'data': anchor_data,
-#             'id': request.sid
-#         }, broadcast=True)
-#     except Exception as e:
-#         return make_response(jsonify({'message' : 'Error getting all Anchors : ', 'error' : str(e)}), 500)
-
-# Trigger to set Anchor's state equals to 1 if updated_on < datetime.now() - 1h | DA RIVEDERE
-def update_anchor_state():
-    try:
-        update_anchor_state = DDL('''\
-            CREATE TRIGGER update_anchor_state UPDATE OF updated_on ON anchors
-            BEGIN
-                UPDATE anchors SET status = 1 WHERE (updated_on < datetime('now', '-1 hour'));
-            END;''')
-        event.listen(Anchor.__table__, 'after_create', update_anchor_state)
-        db.session.commit()
-    except Exception as e:
-        return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
-    
-# scheduler.every(1).hour.do(update_anchor_state.execute)
 #endregion
 
 
 @app.route('/api/logs', methods=['POST']) 
-def _create_log():
+def create_log():
     try:
         data = request.get_json(force=True)
         new_log = Log(
@@ -300,24 +303,25 @@ def get_logs():
         return jsonify(logs_data), 200
     except Exception as e:
         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500) 
-@app.route('/api/latest_logs', methods=['GET']) # Get all Users
-def get_latest_logs():
-    try:
-        logs = Log.query.all()
-        logs_data = [{ 'id' : log.id, 'id_user' : log.id_user, 'col' : log.col, 'strength' : log.strength, 'bpm' : log.bpm, 'created_on': log.created_on } for log in logs]
 
-        latest_logs_dict = {}
-        for log in logs_data:
-            id_user = log['id_user']
-            if id_user not in latest_logs_dict or log['created_on'] > latest_logs_dict[id_user]['created_on']:
-                latest_logs_dict[id_user] = log
-        latest_logs = list(latest_logs_dict.values())
+# @app.route('/api/latest_logs', methods=['GET']) # Get all Users
+# def get_latest_logs():
+#     try:
+#         logs = Log.query.all()
+#         logs_data = [{ 'id' : log.id, 'id_user' : log.id_user, 'col' : log.col, 'strength' : log.strength, 'bpm' : log.bpm, 'created_on': log.created_on } for log in logs]
 
-        # print(latest_logs)
+#         latest_logs_dict = {}
+#         for log in logs_data:
+#             id_user = log['id_user']
+#             if id_user not in latest_logs_dict or log['created_on'] > latest_logs_dict[id_user]['created_on']:
+#                 latest_logs_dict[id_user] = log
+#         latest_logs = list(latest_logs_dict.values())
 
-        return jsonify(latest_logs), 200
-    except Exception as e:
-        return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500)
+#         print(format(latest_logs))
+
+#         return jsonify(latest_logs), 200
+#     except Exception as e:
+#         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500)
 #endregion
 
 

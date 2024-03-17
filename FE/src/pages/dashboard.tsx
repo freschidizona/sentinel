@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import Menu from "./components/Menu";
 import Login from "./login";
 import Link from "next/link";
 import client from "./client";
-
+import { SocketContext } from './socket';
 import LogTable from "./components/LogTable";
 import AnchorTable from "./components/AnchorTable";
 import NotifyTable from "./components/NotifyTable";
 
 import { UserInterfaceProps } from "./interfaces/UserInterfaceProps";
-import { socket as Socket } from "./socket";
+import io from 'socket.io-client';
 
 interface User {
     id: string;
@@ -19,24 +19,13 @@ interface User {
 }
 
 const App: React.FC<UserInterfaceProps> = () => {
+    const socket = useContext(SocketContext);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [user, setUser] = useState<User>();
-
     const [isConnected, setIsConnected] = useState();
 
-    const socket = Socket;
-
-    useEffect(() => {
-        const URL = "http://localhost:4000";
-        socket?.connect();
-
-        // socket?.emit("anchors");
-
-        // socket?.on("anchorsEvent", (data) => {
-        //     console.log(data);
-        // })
-
-    }, []);
+    console.log("Dashboard Component");
+    console.log(socket);
 
     const logoutUser = async () => {
         await client.post(`${apiUrl}/api/logout`);
@@ -100,7 +89,7 @@ const App: React.FC<UserInterfaceProps> = () => {
                         className="w-40 h-40 mx-auto"
                     />
                     <div className="flex items-center justify-center px-6 py-8 mx-auto">
-                        <AnchorTable/>
+                        <AnchorTable />
                         <LogTable />
                         <NotifyTable />
                     </div>

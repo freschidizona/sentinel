@@ -1,9 +1,36 @@
-import React from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { SocketContext } from "../socket";
+
+export interface Log {
+    id: number;
+    id_user: string;
+    name: string;
+    strength: number;
+    bpm: number;
+}
 
 const LogTable = () => {
+    const socket = useContext(SocketContext);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const [logs, setLogs] = useState<Log[]>([]);
+
+    useEffect(() => {
+        console.log("Log Component");
+        console.log(socket);
+
+        socket?.emit("latestLogs");
+
+        socket?.on("latestLogsEvent", (res: any) => {
+            console.log("latestLogsEvent");
+            console.log(res.data);
+            console.log(res.data.reverse());
+            setLogs(res.data.reverse());
+        });
+    }, []); // <- Should i put something in []?
+
     return (
         <div className="py-12">
-            <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div className="max-w-sm sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden rounded-2xl py-4 px-4">
                     <div className="address">
                         <div className="item mb-2 md:flex md:flex-wrap md:justify-between">
@@ -42,104 +69,31 @@ const LogTable = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="h-96 overflow-y-auto">
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Simone
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Simone
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Giuseppe
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Giuseppe
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Giuseppe
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Giuseppe
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
-                                                        <tr className="bg-white border-b text-gray-800">
-                                                            <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                26:6d:fe:9c:d1:4c
-                                                            </td>
-                                                            <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                Giuseppe
-                                                            </td>
-                                                            <td className="text-sm px-12 font-light px-6 py-4 whitespace-nowrap">
-                                                                3
-                                                            </td>
-                                                            <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                30m
-                                                            </td>
-                                                        </tr>
+                                                        {logs?.map((log) => (
+                                                            <tr
+                                                                key={log.id}
+                                                                className="bg-white border-b text-gray-800"
+                                                            >
+                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                    {
+                                                                        log.id_user
+                                                                    }
+                                                                </td>
+                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                    {log.name}
+                                                                </td>
+                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                    {
+                                                                        log.id_user
+                                                                    }
+                                                                </td>
+                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                    {
+                                                                        log.bpm
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        ))}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -152,59 +106,6 @@ const LogTable = () => {
                 </div>
             </div>
         </div>
-        // <div className="rounded-2xl overflow-x-auto">
-        //     <table className="w-24 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-        //         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-        //             <tr>
-        //                 <th scope="col" className="px-6 py-3"></th>
-        //                 <th scope="col" className="px-6 py-3">
-        //                     Name
-        //                 </th>
-        //                 <th scope="col" className="px-6 py-3">
-        //                     Anchor
-        //                 </th>
-        //                 <th scope="col" className="px-6 py-3">
-        //                     Meters
-        //                 </th>
-        //             </tr>
-        //         </thead>
-        //         <tbody>
-        //             <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-        //                 <th
-        //                     scope="row"
-        //                     className="uppercase px-6 py-4 whitespace-nowrap dark:text-white"
-        //                 >
-        //                     26:6d:fe:9c:d1:4c
-        //                 </th>
-        //                 <td className="px-6 py-4">Giuseppe Pitruzzella</td>
-        //                 <td className="px-6 py-4">2</td>
-        //                 <td className="px-6 py-4">6m</td>
-        //             </tr>
-        //             <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-        //                 <th
-        //                     scope="row"
-        //                     className="uppercase px-6 py-4 whitespace-nowrap dark:text-white"
-        //                 >
-        //                     26:6d:fe:9c:d1:4c
-        //                 </th>
-        //                 <td className="px-6 py-4">Simone Costanzo</td>
-        //                 <td className="px-6 py-4">3</td>
-        //                 <td className="px-6 py-4">5m</td>
-        //             </tr>
-        //             <tr className="bg-white dark:bg-gray-800">
-        //                 <th
-        //                     scope="row"
-        //                     className="uppercase px-6 py-4 whitespace-nowrap dark:text-white"
-        //                 >
-        //                     26:6d:fe:9c:d1:4c
-        //                 </th>
-        //                 <td className="px-6 py-4">Elisabetta Grasso</td>
-        //                 <td className="px-6 py-4">1</td>
-        //                 <td className="px-6 py-4">13m</td>
-        //             </tr>
-        //         </tbody>
-        //     </table>
-        // </div>
     );
 };
 

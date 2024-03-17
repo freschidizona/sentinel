@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from 'react';
 import Login from "./login";
+import { SocketProvider } from './socket';
 
 const Home: React.FC = () => {
     return (
         <div>
-            <Login />
+            <SocketProvider>
+                <Login />
+            </SocketProvider>
         </div>
     );
 };
-
-export default Home;

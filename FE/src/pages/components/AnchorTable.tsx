@@ -1,27 +1,29 @@
-import React, { useEffect, useState } from "react";
-import { socket } from "../socket";
+import React, { useEffect, useState, useContext } from "react";
+import { SocketContext } from "../socket";
 
 export interface Anchor {
     id: number;
     status: number;
 }
 
-const AnchorTable = () => {
+const AnchorTable = (s: any) => {
+    const socket = useContext(SocketContext);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [anchors, setAnchors] = useState<Anchor[]>([]);
     const [data, setData] = useState([]);
 
     useEffect(() => {
-        const URL = "http://localhost:4000";
-        socket?.connect();
+        console.log("Anchor Component");
+        console.log(socket);
 
         socket?.emit("anchors");
 
-        socket?.on("anchorsEvent", (res) => {
+        socket?.on("anchorsEvent", (res: any) => {
+            console.log("anchorsEvent");
+            console.log(res.data);
             console.log(res.data.reverse());
             setAnchors(res.data.reverse());
         });
-
     }, []);
 
     return (
@@ -53,19 +55,28 @@ const AnchorTable = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="h-96 overflow-y-auto">
-                                                        {anchors?.map((anchor) => (
-                                                            <tr
-                                                                key={anchor.id}
-                                                                className="bg-white border-b text-gray-800"
-                                                            >
-                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                    {anchor.id}
-                                                                </td>
-                                                                <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
-                                                                    {anchor.status == 0 ? "ONLINE" : "OFFLINE"}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
+                                                        {anchors?.map(
+                                                            (anchor) => (
+                                                                <tr
+                                                                    key={
+                                                                        anchor.id
+                                                                    }
+                                                                    className="bg-white border-b text-gray-800"
+                                                                >
+                                                                    <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                        {
+                                                                            anchor.id
+                                                                        }
+                                                                    </td>
+                                                                    <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">
+                                                                        {anchor.status ==
+                                                                        0
+                                                                            ? "ONLINE"
+                                                                            : "OFFLINE"}
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        )}
                                                     </tbody>
                                                 </table>
                                             </div>
