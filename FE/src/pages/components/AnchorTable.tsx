@@ -6,7 +6,7 @@ export interface Anchor {
     status: number;
 }
 
-const AnchorTable = (s: any) => {
+const AnchorTable = () => {
     const socket = useContext(SocketContext);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [anchors, setAnchors] = useState<Anchor[]>([]);
@@ -28,7 +28,7 @@ const AnchorTable = (s: any) => {
 
     return (
         <div className="py-12">
-            <div className="max-w-sm sm:px-6 lg:px-8">
+            <div className="max-w-md sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden rounded-2xl py-4 px-4">
                     <div className="address">
                         <div className="item mb-2 md:flex md:flex-wrap md:justify-between">

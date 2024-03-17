@@ -3,10 +3,12 @@ import { SocketContext } from "../socket";
 
 export interface Log {
     id: number;
-    id_user: string;
-    name: string;
-    strength: number;
+    worker_addr: string;
+    anchor_id: string;
     bpm: number;
+    temp: number;
+    chol: number;
+    sug: number;
 }
 
 const LogTable = () => {
@@ -30,7 +32,7 @@ const LogTable = () => {
 
     return (
         <div className="py-12">
-            <div className="max-w-sm sm:px-6 lg:px-8">
+            <div className="max-w-2xl sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden rounded-2xl py-4 px-4">
                     <div className="address">
                         <div className="item mb-2 md:flex md:flex-wrap md:justify-between">
@@ -52,19 +54,19 @@ const LogTable = () => {
                                                                 scope="col"
                                                                 className="text-md px-6 py-4 text-left"
                                                             >
-                                                                Name
-                                                            </th>
-                                                            <th
-                                                                scope="col"
-                                                                className="text-md px-6 py-4 text-left"
-                                                            >
                                                                 Anchor
                                                             </th>
                                                             <th
                                                                 scope="col"
                                                                 className="text-md px-6 py-4 text-left"
                                                             >
-                                                                Meters
+                                                                BPM
+                                                            </th>
+                                                            <th
+                                                                scope="col"
+                                                                className="text-md px-6 py-4 text-left"
+                                                            >
+                                                                Temp
                                                             </th>
                                                         </tr>
                                                     </thead>
@@ -76,20 +78,22 @@ const LogTable = () => {
                                                             >
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
                                                                     {
-                                                                        log.id_user
+                                                                        log.worker_addr
                                                                     }
                                                                 </td>
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                    {log.name}
-                                                                </td>
-                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
                                                                     {
-                                                                        log.id_user
+                                                                        log.anchor_id
                                                                     }
                                                                 </td>
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
                                                                     {
                                                                         log.bpm
+                                                                    }
+                                                                </td>
+                                                                <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                    {
+                                                                        log.temp
                                                                     }
                                                                 </td>
                                                             </tr>
