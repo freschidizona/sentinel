@@ -124,7 +124,7 @@ def mqtt_create_log(data):
         new_log = Log(
             worker_addr = data['worker_addr'], 
             anchor_id = data['anchor_id'], 
-            type = data['type']) if data['type'] == 1 else Log(
+            type = data['type']) if data['type'] == 1 or data['type'] == 5 else Log(
                 worker_addr = data['worker_addr'], 
                 anchor_id = data['anchor_id'], 
                 bpm = data['bpm'], 
@@ -188,7 +188,6 @@ def handle_mqtt_message(client, userdata, message):
 #region SocketIO
 @socketio.on('anchors')
 def get_anchors():
-    print('[EMIT] Emitting Anchors...')
     anchors = Anchor.query.all()
     anchor_data = [{ 
         'id' : anchor.id, 
@@ -196,7 +195,7 @@ def get_anchors():
         'status' : anchor.status, 
         'created_on' : anchor.created_on.strftime('%Y-%m-%d %H:%M:%S'), 
         'updated_on' : anchor.updated_on.strftime('%Y-%m-%d %H:%M:%S') } for anchor in anchors]
-    print(format(anchor_data))
+    
     emit('anchorsEvent', {
         'data': anchor_data,
         'id': request.sid
@@ -204,12 +203,6 @@ def get_anchors():
 
 @socketio.on('latestLogs')
 def get_latest_logs():
-    print('[EMIT] Emitting Latest Logs...')
-    # logs = Log.query\
-    #     .join(Anchor, Log.anchor_id == Anchor.id)\
-    #     .add_columns(Log, User.name)\
-    #     .filter(User.id == Log.id_user)\
-    #     .all()
     logs = Log.query.all()
     logs_data = [{ 
         'id' : log.id, 
@@ -220,6 +213,7 @@ def get_latest_logs():
         'chol' : log.chol, 
         'sug' : log.sug, 
         'created_on': log.created_on.strftime('%Y-%m-%d %H:%M:%S') } for log in logs]
+    
     latest_logs_dict = {}
     for log in logs_data:
         worker_addr = log['worker_addr']
@@ -236,15 +230,22 @@ def get_latest_logs():
 @socketio.on('notify')
 def get_notify():
     try:
-        print('[EMIT] Emitting Notify...')
-        notify = Log.query.filter(Log.type == 1).all()
+        notify = Log.query.all()
         notify_data = [{ 
             'id' : e.id, 
             'worker_addr' : e.worker_addr,
             'type' : e.type,
-            'created_on': e.created_on.strftime('%Y-%m-%d %H:%M:%S') } for e in notify]
+            'created_on': e.created_on.strftime('%Y-%m-%d %H:%M:%S') } for e in notify if e.type == 1 or e.type == 5]
+        
+        latest_notify_dict = {}
+        for e in notify_data:
+            worker_addr = e['worker_addr']
+            if worker_addr not in latest_notify_dict or e['created_on'] > latest_notify_dict[worker_addr]['created_on']:
+                latest_notify_dict[worker_addr] = e
+        latest_notify = list(latest_notify_dict.values())
+
         emit('notifyEvent', {
-            'data': notify_data,
+            'data': latest_notify,
             'id': request.sid
         }, broadcast=True)
     except Exception as e:
@@ -393,7 +394,7 @@ def send_ack():
     try:
         data = request.get_json(force=True)
         msg = json.dumps(data)
-        print("[ACK] Sending ACK : " + data["worker_addr"])
+        print("[ACK] Sending ACK : " + format(data))
         mqtt_client.publish("/sentinel/ack", msg)
         return jsonify(data), 201
     except Exception as e:
@@ -427,24 +428,6 @@ def get_logs():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500) 
 
-# @app.route('/api/latest_logs', methods=['GET']) # Get all Users
-# def get_latest_logs():
-#     try:
-#         logs = Log.query.all()
-#         logs_data = [{ 'id' : log.id, 'id_user' : log.id_user, 'col' : log.col, 'strength' : log.strength, 'bpm' : log.bpm, 'created_on': log.created_on } for log in logs]
-
-#         latest_logs_dict = {}
-#         for log in logs_data:
-#             id_user = log['id_user']
-#             if id_user not in latest_logs_dict or log['created_on'] > latest_logs_dict[id_user]['created_on']:
-#                 latest_logs_dict[id_user] = log
-#         latest_logs = list(latest_logs_dict.values())
-
-#         print(format(latest_logs))
-
-#         return jsonify(latest_logs), 200
-#     except Exception as e:
-#         return make_response(jsonify({'message' : 'Error getting all Logs : ', 'error' : str(e)}), 500)
 #endregion
 
 

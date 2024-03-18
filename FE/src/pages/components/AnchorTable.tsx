@@ -16,12 +16,13 @@ const AnchorTable = () => {
         socket?.emit("anchors");
         socket?.on("anchorsEvent", (res: any) => {
             setAnchors(res.data.reverse());
+            socket?.emit("anchors");
         });
     }, [setAnchors]);
 
     return (
         <div className="py-12">
-            <div className="max-w-md sm:px-6 lg:px-8">
+            <div className="max-w-lg sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden rounded-2xl py-4 px-4">
                     <div className="address">
                         <div className="item mb-2 md:flex md:flex-wrap md:justify-between">
@@ -43,6 +44,12 @@ const AnchorTable = () => {
                                                                 scope="col"
                                                                 className="text-md px-6 py-4 text-left"
                                                             >
+                                                                Meters
+                                                            </th>
+                                                            <th
+                                                                scope="col"
+                                                                className="text-md px-6 py-4 text-left"
+                                                            >
                                                                 Status
                                                             </th>
                                                         </tr>
@@ -59,6 +66,11 @@ const AnchorTable = () => {
                                                                     <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
                                                                         {
                                                                             anchor.id
+                                                                        }
+                                                                    </td>
+                                                                    <td className="text-sm font-light px-6 py-4 whitespace-nowrap">
+                                                                        {
+                                                                            anchor.id * 20 + " m"
                                                                         }
                                                                     </td>
                                                                     <td className="text-sm font-extrabold font-light px-6 py-4 whitespace-nowrap">

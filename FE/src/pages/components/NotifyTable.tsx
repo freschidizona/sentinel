@@ -18,8 +18,40 @@ const NotifyTable = () => {
         socket?.emit("notify");
         socket?.on("notifyEvent", (res: any) => {
             setNotify(res.data.reverse());
+            socket?.emit("notify");
         });
     }, [setNotify]);
+
+
+
+
+    // const [markerPos, setMarkerPos] = useState({
+    //     longitude:8.5455940,latitude:47.3977421
+    // })
+    // const updateData=(data: Notify[])=>{
+    //     setNotify(prevProps =>{
+    //         return {...prevProps, data}
+    //     });
+    //     console.log("Data Updated");
+    // }
+    // useEffect(()=>{
+    //     // socket?.emit("notify");
+    //     socket.on("notifyEvent",(socketData)=>{
+    //         updateData(socketData)
+    //     })
+    // },[])
+
+    // useEffect(()=>{
+    //    console.log(notify)
+    // },[notify])
+
+
+
+
+
+
+
+
 
     const ackWorker = async (id: number, workerId: string) => {
         try {
@@ -32,7 +64,7 @@ const NotifyTable = () => {
 
     return (
         <div className="py-12">
-            <div className="max-w-md sm:px-6 lg:px-8">
+            <div className="max-w-lg sm:px-6 lg:px-8">
                 <div className="bg-white overflow-hidden rounded-2xl py-4 px-4">
                     <div className="address">
                         <div className="item mb-2 md:flex md:flex-wrap md:justify-between">
@@ -67,11 +99,11 @@ const NotifyTable = () => {
                                                                     }
                                                                     className="bg-white border-b text-gray-800"
                                                                 >
-                                                                    <td className="text-xs font-extrabold font-light px-6 py-4 whitespace-nowrap">
+                                                                    <td className="text-xs font-extrabold font-light py-4 whitespace-nowrap">
                                                                         {
                                                                         e.type == 1
-                                                                            ? e.worker_addr + " needs help :/"
-                                                                            : e.worker_addr + " is dead :(" }
+                                                                            ? e.worker_addr + " " + e.id + " NEEDS HELP 🚑"
+                                                                            : e.worker_addr + " " + e.id + " IS DEAD 💀" }
                                                                     </td>
                                                                     <td className="uppercase text-xs font-light px-6 py-4 whitespace-nowrap">
                                                                         <button onClick={() => ackWorker(e.id, e.worker_addr)} className={`w-24 h-16 mr-2 text-blue-600 font-bold rounded-2xl hover:text-blue-400`}>ACK</button>

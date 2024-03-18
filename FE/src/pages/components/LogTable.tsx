@@ -16,12 +16,24 @@ const LogTable = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const [logs, setLogs] = useState<Log[]>([]);
 
+    // useEffect(() => {
+    //     socket?.emit("latestLogs");
+    //     socket?.on("latestLogsEvent", (res: any) => {
+    //         setLogs(res.data.reverse());
+    //         // socket?.emit("latestLogs");
+    //     });
+    // }, [setLogs]); // <- Should i put something in []?
+
     useEffect(() => {
+        console.log("Log Component");
+        console.log(socket);
+
         socket?.emit("latestLogs");
         socket?.on("latestLogsEvent", (res: any) => {
             setLogs(res.data.reverse());
+            socket?.emit("latestLogs");
         });
-    }, [setLogs]); // <- Should i put something in []?
+    }, [setLogs]);
 
     return (
         <div className="py-12">
@@ -70,7 +82,7 @@ const LogTable = () => {
                                                                 className="bg-white border-b text-gray-800"
                                                             >
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                    {log.worker_addr}
+                                                                    {log.worker_addr + " " + log.id}
                                                                 </td>
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
                                                                     {
