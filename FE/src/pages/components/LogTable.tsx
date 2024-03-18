@@ -17,18 +17,11 @@ const LogTable = () => {
     const [logs, setLogs] = useState<Log[]>([]);
 
     useEffect(() => {
-        console.log("Log Component");
-        console.log(socket);
-
         socket?.emit("latestLogs");
-
         socket?.on("latestLogsEvent", (res: any) => {
-            console.log("latestLogsEvent");
-            console.log(res.data);
-            console.log(res.data.reverse());
             setLogs(res.data.reverse());
         });
-    }, []); // <- Should i put something in []?
+    }, [setLogs]); // <- Should i put something in []?
 
     return (
         <div className="py-12">
@@ -77,9 +70,7 @@ const LogTable = () => {
                                                                 className="bg-white border-b text-gray-800"
                                                             >
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                    {
-                                                                        log.worker_addr
-                                                                    }
+                                                                    {log.worker_addr}
                                                                 </td>
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
                                                                     {
@@ -87,14 +78,10 @@ const LogTable = () => {
                                                                     }
                                                                 </td>
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                    {
-                                                                        log.bpm
-                                                                    }
+                                                                    {log.bpm}
                                                                 </td>
                                                                 <td className="uppercase text-sm font-light px-6 py-4 whitespace-nowrap">
-                                                                    {
-                                                                        log.temp
-                                                                    }
+                                                                    {log.temp}
                                                                 </td>
                                                             </tr>
                                                         ))}

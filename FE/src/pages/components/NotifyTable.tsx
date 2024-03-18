@@ -15,22 +15,15 @@ const NotifyTable = () => {
     const [data, setData] = useState([]);
 
     useEffect(() => {
-        console.log("Notify Component");
-        console.log(socket);
-
         socket?.emit("notify");
-
         socket?.on("notifyEvent", (res: any) => {
-            console.log("notifyEvent");
-            console.log(res.data);
-            console.log(res.data.reverse());
             setNotify(res.data.reverse());
         });
-    }, []);
+    }, [setNotify]);
 
     const ackWorker = async (id: number, workerId: string) => {
         try {
-            await axios.post(`${apiUrl}/api/ack`, { worker_addr: workerId });
+            await axios.post(`${apiUrl}/api/ack`, { type: 2, worker_addr: workerId, id: id });
             setNotify(notify.filter((e) => e.id !== id));
         } catch (error) {
             console.error("Error sending ACK to Worker: ", error);

@@ -102,10 +102,8 @@ db.create_all()
 #region Utils
 def mqtt_create_worker(address):
     try:
-        print("[INFO] Check if Worker exists: " + address)
         worker = Worker.query.filter_by(address = address).first() # Get Worker by its ID
         if not worker:
-            print("Creating new Worker: " + address)
             new_worker = Worker(address = address)
             db.session.add(new_worker)
             db.session.commit()
@@ -123,7 +121,6 @@ def mqtt_create_anchor(address):
         print(e)
 def mqtt_create_log(data):
     try:
-        print("[INFO] Create new Log: " + str(data))
         new_log = Log(
             worker_addr = data['worker_addr'], 
             anchor_id = data['anchor_id'], 
@@ -171,10 +168,10 @@ def handle_connect(client, userdata, flags, rc):
 def handle_mqtt_message(client, userdata, message):
     try:
         data = message.payload.decode()
-        print("[INFO] Received DATA : " + data)
+        print("[MQTT] Received message on topic " + message.topic + " : " + data)
         payload=json.loads(data)
         
-        print("[INFO] Received JSON : " + format(payload))
+        # print("[INFO] Received JSON : " + format(payload))
 
         # Create new Worker if it doesn't exist
         mqtt_create_worker(str(payload.get('worker_addr')))
@@ -250,17 +247,15 @@ def get_notify():
             'data': notify_data,
             'id': request.sid
         }, broadcast=True)
-        print(format(notify_data))
     except Exception as e:
         print(e)
 #endregion
 
-#region Admins
+#region User
 @app.route('/api/register', methods=['POST']) # Create a new User
 def register():
     try:
         data = request.get_json(force=True)
-        print(format(data))
         admin = User(
             name = data['name'], 
             surname = data['surname'], 
@@ -283,7 +278,6 @@ def register():
 def login():
     try:
         data = request.get_json(force=True)
-        print(format(data))
 
         admin = User.query.filter_by(email=data['email']).first()
 
@@ -328,6 +322,7 @@ def get_current_user():
 #endregion
 
 #region Users
+# Non più utilizzate, si rifanno al model Worker. Modifica User con Worker
 @app.route('/api/users', methods=['POST']) # Create a new User
 def create_user():
     try:
@@ -397,7 +392,9 @@ def ping_anchor(address):
 def send_ack():
     try:
         data = request.get_json(force=True)
+        msg = json.dumps(data)
         print("[ACK] Sending ACK : " + data["worker_addr"])
+        mqtt_client.publish("/sentinel/ack", msg)
         return jsonify(data), 201
     except Exception as e:
         return make_response(jsonify({'message' : 'Error sending ACK : ', 'error' : str(e)}), 500)
