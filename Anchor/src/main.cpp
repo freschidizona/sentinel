@@ -48,7 +48,7 @@ const char index_html[] PROGMEM = R"=====(
     </head>
     <style>
         html, body{
-            background-color: #001089;
+            background-color: #180047;
             color: white;
             width: 100%;
             height: 100%;
