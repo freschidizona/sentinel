@@ -111,7 +111,7 @@ def mqtt_create_worker(address):
         print(e)
 def mqtt_create_anchor(address):
     try:
-        print("[INFO] Check if Anchor exists: " + address)
+        # print("[INFO] Check if Anchor exists: " + address)
         anchor = Anchor.query.filter_by(address = address).first() # Get Anchor by its ID
         if not anchor:
             new_anchor = Anchor(address = address, status = 0)
@@ -140,6 +140,21 @@ def mqtt_create_log(data):
             # Emit notify if User requests help
             get_notify()
         else: get_latest_logs() # Emit new logs
+    except Exception as e:
+        print(e)
+
+def ping_anchors():
+    try:
+        # print("[PING] Set anchors status to 1 if updated at is greater than 1 hour")
+        anchors = Anchor.query.all()
+        # Set anchors status to 1 if updated at is greater than 1 hour
+        now = datetime.datetime.now()
+        for anchor in anchors:
+            if now - anchor.updated_on > datetime.timedelta(hours=1):
+                anchor.status = 1
+                db.session.commit()
+            else: anchor.updated_on = now
+        db.session.commit()
     except Exception as e:
         print(e)
 #endregion
@@ -179,6 +194,8 @@ def handle_mqtt_message(client, userdata, message):
         mqtt_create_anchor(str(payload.get('anchor_id')))
         # Create new Log
         mqtt_create_log(payload)
+        # Ping anchors
+        ping_anchors()
     except Exception as e:
         print(e)
 #endregion
@@ -221,7 +238,6 @@ def get_latest_logs():
             latest_logs_dict[worker_addr] = log
     latest_logs = list(latest_logs_dict.values())
 
-    print(format(latest_logs))
     emit('latestLogsEvent', {
         'data': latest_logs,
         'id': request.sid
@@ -366,35 +382,19 @@ def create_anchor():
     except Exception as e:
         return make_response(jsonify({'message' : 'Error creating new Anchor : ', 'error' : str(e)}), 500)
 
-@app.route('/api/anchors/<address>', methods=['PUT'])
-def ping_anchor(address):
-    try:
-        # anchors = Anchor.query.all()
-        # anchor_data = [{ 
-        #     'id' : anchor.id, 
-        #     'address' : anchor.address, 
-        #     'status' : anchor.status ,
-        #     'created_on' : anchor.created_on, 
-        #     'updated_on' : anchor.updated_on } for anchor in anchors]
-        
-        # Set anchors status to 1 if updated at is greater than 1 hour
-
-        anchor = Anchor.query.filter_by(address = address).first()
-        if anchor:
-            anchor.created_on = datetime.datetime.now()
-            db.session.commit()
-            return make_response(jsonify({'message' : 'Anchor updated!'}), 200)
-        return make_response(jsonify({'message' : 'Anchor not found!'}), 404)
-    except Exception as e:
-        return make_response(jsonify({'message' : 'Error : ', 'error' : str(e)}), 500)
 #endregion
 
 @app.route('/api/ack', methods=['POST']) 
 def send_ack():
     try:
         data = request.get_json(force=True)
+
+        log = Log.query.filter_by(id = data['id']).first()
+        db.session.delete(log)
+        db.session.commit()
+
         msg = json.dumps(data)
-        print("[ACK] Sending ACK : " + format(data))
+        print("[ACK] : " + format(data))
         mqtt_client.publish("/sentinel/ack", msg)
         return jsonify(data), 201
     except Exception as e:

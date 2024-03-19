@@ -22,37 +22,6 @@ const NotifyTable = () => {
         });
     }, [setNotify]);
 
-
-
-
-    // const [markerPos, setMarkerPos] = useState({
-    //     longitude:8.5455940,latitude:47.3977421
-    // })
-    // const updateData=(data: Notify[])=>{
-    //     setNotify(prevProps =>{
-    //         return {...prevProps, data}
-    //     });
-    //     console.log("Data Updated");
-    // }
-    // useEffect(()=>{
-    //     // socket?.emit("notify");
-    //     socket.on("notifyEvent",(socketData)=>{
-    //         updateData(socketData)
-    //     })
-    // },[])
-
-    // useEffect(()=>{
-    //    console.log(notify)
-    // },[notify])
-
-
-
-
-
-
-
-
-
     const ackWorker = async (id: number, workerId: string) => {
         try {
             await axios.post(`${apiUrl}/api/ack`, { type: 2, worker_addr: workerId, id: id });
@@ -94,9 +63,7 @@ const NotifyTable = () => {
                                                         {notify?.map(
                                                             (e) => (
                                                                 <tr
-                                                                    key={
-                                                                        e.id
-                                                                    }
+                                                                    key={e.id}
                                                                     className="bg-white border-b text-gray-800"
                                                                 >
                                                                     <td className="text-xs font-extrabold font-light py-4 whitespace-nowrap">
