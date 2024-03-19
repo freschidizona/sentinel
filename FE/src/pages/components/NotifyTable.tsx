@@ -17,8 +17,7 @@ const NotifyTable = () => {
     useEffect(() => {
         socket?.emit("notify");
         socket?.on("notifyEvent", (res: any) => {
-            setNotify(res.data.reverse());
-            socket?.emit("notify");
+            setNotify(JSON.parse(res).reverse());
         });
     }, [setNotify]);
 

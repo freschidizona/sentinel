@@ -15,8 +15,7 @@ const AnchorTable = () => {
     useEffect(() => {
         socket?.emit("anchors");
         socket?.on("anchorsEvent", (res: any) => {
-            setAnchors(res.data.reverse());
-            socket?.emit("anchors");
+            setAnchors(JSON.parse(res).reverse());
         });
     }, [setAnchors]);
 

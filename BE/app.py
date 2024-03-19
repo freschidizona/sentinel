@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 import datetime
 from os import environ
 import json
+import eventlet
 #endregion
 
 #region Flask, SQLAlchemy, Bcrypt, Websockets
@@ -19,6 +20,8 @@ app.config.from_object(ApplicationConfig)
 server_session = Session(app)
 cors = CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 socketio = SocketIO(app, cors_allowed_origins='*')
+eventlet.monkey_patch()
+
 
 #region Database, Models
 db = SQLAlchemy(app)
@@ -102,25 +105,28 @@ db.create_all()
 #region Utils
 def mqtt_create_worker(address):
     try:
+        print("Creating worker")
         worker = Worker.query.filter_by(address = address).first() # Get Worker by its ID
         if not worker:
             new_worker = Worker(address = address)
             db.session.add(new_worker)
             db.session.commit()
     except Exception as e:
-        print(e)
+        print("[Exception] " + e)
 def mqtt_create_anchor(address):
     try:
         # print("[INFO] Check if Anchor exists: " + address)
+        print("[create_anchor]")
         anchor = Anchor.query.filter_by(address = address).first() # Get Anchor by its ID
         if not anchor:
             new_anchor = Anchor(address = address, status = 0)
             db.session.add(new_anchor)
             db.session.commit()
     except Exception as e:
-        print(e)
+        print("[Exception] " + e)
 def mqtt_create_log(data):
     try:
+        print("[create_log]")
         new_log = Log(
             worker_addr = data['worker_addr'], 
             anchor_id = data['anchor_id'], 
@@ -141,11 +147,11 @@ def mqtt_create_log(data):
             get_notify()
         else: get_latest_logs() # Emit new logs
     except Exception as e:
-        print(e)
+        print("[Exception] " + e)
 
 def ping_anchors():
     try:
-        # print("[PING] Set anchors status to 1 if updated at is greater than 1 hour")
+        print("[ping_anchors] Set anchors status to 1 if updated at is greater than 1 hour")
         anchors = Anchor.query.all()
         # Set anchors status to 1 if updated at is greater than 1 hour
         now = datetime.datetime.now()
@@ -182,11 +188,12 @@ def handle_connect(client, userdata, flags, rc):
 @mqtt_client.on_message()
 def handle_mqtt_message(client, userdata, message):
     try:
+
         data = message.payload.decode()
         print("[MQTT] Received message on topic " + message.topic + " : " + data)
         payload=json.loads(data)
         
-        # print("[INFO] Received JSON : " + format(payload))
+        print("[INFO] Received JSON : " + format(payload))
 
         # Create new Worker if it doesn't exist
         mqtt_create_worker(str(payload.get('worker_addr')))
@@ -213,10 +220,7 @@ def get_anchors():
         'created_on' : anchor.created_on.strftime('%Y-%m-%d %H:%M:%S'), 
         'updated_on' : anchor.updated_on.strftime('%Y-%m-%d %H:%M:%S') } for anchor in anchors]
     
-    emit('anchorsEvent', {
-        'data': anchor_data,
-        'id': request.sid
-    }, broadcast=True)
+    socketio.emit('anchorsEvent', json.dumps(anchor_data))
 
 @socketio.on('latestLogs')
 def get_latest_logs():
@@ -230,18 +234,15 @@ def get_latest_logs():
         'chol' : log.chol, 
         'sug' : log.sug, 
         'created_on': log.created_on.strftime('%Y-%m-%d %H:%M:%S') } for log in logs]
-    
     latest_logs_dict = {}
     for log in logs_data:
         worker_addr = log['worker_addr']
         if worker_addr not in latest_logs_dict or log['created_on'] > latest_logs_dict[worker_addr]['created_on']:
             latest_logs_dict[worker_addr] = log
+    print(latest_logs_dict.values())
     latest_logs = list(latest_logs_dict.values())
 
-    emit('latestLogsEvent', {
-        'data': latest_logs,
-        'id': request.sid
-    }, broadcast=True)
+    socketio.emit('latestLogsEvent', json.dumps(latest_logs))
 
 @socketio.on('notify')
 def get_notify():
@@ -260,10 +261,7 @@ def get_notify():
                 latest_notify_dict[worker_addr] = e
         latest_notify = list(latest_notify_dict.values())
 
-        emit('notifyEvent', {
-            'data': latest_notify,
-            'id': request.sid
-        }, broadcast=True)
+        socketio.emit('notifyEvent', json.dumps(latest_notify))
     except Exception as e:
         print(e)
 #endregion

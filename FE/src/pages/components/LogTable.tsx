@@ -30,8 +30,7 @@ const LogTable = () => {
 
         socket?.emit("latestLogs");
         socket?.on("latestLogsEvent", (res: any) => {
-            setLogs(res.data.reverse());
-            socket?.emit("latestLogs");
+            setLogs(JSON.parse(res).reverse());
         });
     }, [setLogs]);
 
