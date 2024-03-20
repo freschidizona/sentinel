@@ -8,8 +8,8 @@
 #include <MQTTClient.h>
 #include <random>
 
-const char* ssid = "scraccio";
-const char* password = "simone1337";
+const char* ssid = "";
+const char* password = "";
 
 int col_num = 0;
 int counter = 1;
