@@ -1,18 +1,18 @@
 services:
-  # fe:
-  #   container_name: fe
-  #   image: node:18
-  #   networks:
-  #     - sentinel
-  #   build:
-  #     context: ./FE
-  #     dockerfile: fe.dockerfile
-  #   expose:
-  #     - 3000
-  #   ports:
-  #     - 3000:3000
-  #   depends_on:
-  #     - flask_mqtt
+  fe:
+    container_name: fe
+    image: node:18
+    networks:
+      - sentinel
+    build:
+      context: ./FE
+      dockerfile: fe.dockerfile
+    expose:
+      - 3000
+    ports:
+      - 3000:3000
+    depends_on:
+      - flask_mqtt
   flask_mqtt:
     container_name: flask_mqtt
     image: flask:1.0.0
