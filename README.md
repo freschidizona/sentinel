@@ -4,23 +4,13 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/freschidizona/sentinel">
-    <img src="/FE/public/logo.png" alt="Logo" width="250" height="250">
-  </a>
+  <img src="/FE/public/logo.png" alt="Logo" width="250" height="250">
 
 <h2 align="center">Sentinel</h2>
 <h3 align="center">Project for the course of "Internet Of Things" @ University Of Catania</h3>
 
   <p align="center">
 Solution for industrial maintenance in complex tunnels, monitoring the position, status, and well-being of operators with battery-powered devices, external IP network, and a comprehensive administrative service based on AI.
-    <br />
-    <br />
-    <br />
-    <a href="https://github.com/freschidizona/sentinel">View Demo</a>
-    ·
-    <a href="https://github.com/freschidizona/sentinel/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/freschidizona/sentinel/issues">Request Feature</a>
   </p>
 </div>
 
@@ -43,6 +33,10 @@ Solution for industrial maintenance in complex tunnels, monitoring the position,
    ```sh
    docker compose up
    ```
+4. Change the SSID and Password variables in the [Gateway main file](https://github.com/freschidizona/sentinel/tree/main/Gateway/src/main.cpp)
+5. Flash the ESP32 devices (Bracelet, Anchor, Gateway)
+6. Connect to the anchor's Wi-Fi to trigger a Captive Portal
+7. Set the appropriate Anchor Id (sequential number) via the Captive Portal page
 
 
 
@@ -51,8 +45,20 @@ Solution for industrial maintenance in complex tunnels, monitoring the position,
 
 <!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources. -->
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+_You can check the [Documentation](https://github.com/freschidizona/sentinel/tree/main/Sentinel.pdf)_ to understand how Sentinel works.
 
+
+<!-- SCREENSHOTS -->
+## Screenshots
+<br />
+<div align="center">
+  <img src="/Screenshots/login.jpeg" alt="Logo" style="width:auto; height:500px">
+  <br>Login page<hr>
+  <img src="/Screenshots/ui.jpeg" alt="Logo"  style="width:auto; height:500px">
+  <br>Home page<hr>
+  <img src="/Screenshots/captive.png" alt="Logo" style="width:auto; height:250px">
+  <br>Captive Portal<hr>
+</div>
 
 
 <!-- CONTRIBUTING -->
